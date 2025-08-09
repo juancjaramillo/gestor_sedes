@@ -7,3 +7,8 @@ parameters:
     - app
     - database
     - tests
+
+  ignoreErrors:
+    - message: '#uses generic trait\s+Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types#'
+      paths:
+        - app/Models/Location.php
