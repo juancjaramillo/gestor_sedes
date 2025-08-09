@@ -2,10 +2,10 @@
 
 namespace App\Providers;
 
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Http\Request;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -13,13 +13,15 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        RateLimiter::for('api-key', function (Request $request) {
-            $limit = (int) config('api.rate_limit', 60);
+        RateLimiter::for('api', function (Request $request) {
+            $identity = ($request->header('x-api-key')
+                ?? $request->query('api_key')
+                ?? $request->ip());
 
-            $rawBy = $request->header('x-api-key') ?? $request->ip();
-            $by = is_string($rawBy) ? $rawBy : '';
+            // por ruta para que no “contamine” entre endpoints en la misma key
+            $route = $request->route()?->uri() ?? 'unknown';
 
-            return Limit::perMinute($limit)->by($by);
+            return Limit::perMinute(2)->by($identity.'|'.$route);
         });
     }
 }

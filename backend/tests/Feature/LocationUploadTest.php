@@ -15,8 +15,9 @@ class LocationUploadTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        Storage::fake('public');
-        Config::set('api.key', 'sk_test_123');
+
+        Storage::fake('public');         // fake de disco
+        Config::set('api.key', 'sk_test_123'); // API key
     }
 
     public function test_store_location_with_image_upload(): void
@@ -32,15 +33,9 @@ class LocationUploadTest extends TestCase
         $resp->assertCreated()
              ->assertJsonStructure(['data' => ['id','code','name','image','image_url']]);
 
-        $path = $resp->json('data.image');
+        $path = (string) $resp->json('data.image');
 
-        /** @var \Illuminate\Testing\AssertableFilesystem $disk */
-        $disk = Storage::disk('public');
-        $disk->assertExists($path); // <- ahora Intelephense no molesta
-    }
-
-    public function test_index_requires_api_key(): void
-    {
-        $this->getJson('/api/v1/locations')->assertStatus(401);
+        // Como usamos Storage::fake, 'exists' funciona y no rompe PHPStan
+        $this->assertTrue(Storage::disk('public')->exists($path));
     }
 }

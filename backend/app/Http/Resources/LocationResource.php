@@ -5,8 +5,16 @@ namespace App\Http\Resources;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * @property-read int $id
+ * @property-read string $code
+ * @property-read string $name
+ * @property-read string|null $image
+ * @property-read \Illuminate\Support\Carbon|null $created_at
+ */
 class LocationResource extends JsonResource
 {
+    /** @return array<string, mixed> */
     public function toArray($request): array
     {
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
@@ -21,7 +29,7 @@ class LocationResource extends JsonResource
             'name'       => $this->name,
             'image'      => $image,
             'image_url'  => $imageUrl,
-            'created_at' => optional($this->created_at)?->toISOString(),
+            'created_at' => $this->created_at?->toISOString(),
         ];
     }
 }

@@ -28,7 +28,7 @@ export default function LocationForm({ editing = null, onSuccess }: Props) {
     setCode(editing?.code ?? "");
     setName(editing?.name ?? "");
     setFile(null);
-  }, [editing?.id]);
+  }, [editing?.id, editing?.code, editing?.name]);
 
   const previewUrl = useMemo(() => {
     if (file) return URL.createObjectURL(file);
@@ -57,8 +57,9 @@ export default function LocationForm({ editing = null, onSuccess }: Props) {
       setCode("");
       setName("");
       onSuccess();
-    } catch (err: any) {
-      setError(err.message ?? "Error al guardar");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Error al guardar";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -88,6 +89,7 @@ export default function LocationForm({ editing = null, onSuccess }: Props) {
             ref={inputRef}
             type="file"
             accept="image/*"
+            aria-label="Imagen"            
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
           {previewUrl && (

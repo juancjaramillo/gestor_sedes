@@ -6,6 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class LocationStoreRequest extends FormRequest
 {
+    /** @return array<string, array<int, string>> */
     public function rules(): array
     {
         return [
@@ -22,4 +23,6 @@ class LocationStoreRequest extends FormRequest
             'name' => trim((string) $this->get('name')),
         ]);
     }
+
+    public function authorize(): bool { return true; }
 }

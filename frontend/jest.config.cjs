@@ -8,7 +8,7 @@ module.exports = {
     ],
   },
   extensionsToTreatAsEsm: [".ts", ".tsx"],
-  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
+  setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],
   moduleNameMapper: {
     "^.+\\.(css|less|scss)$": "identity-obj-proxy",
   },

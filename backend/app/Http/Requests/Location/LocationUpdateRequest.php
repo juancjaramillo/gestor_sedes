@@ -4,12 +4,16 @@ namespace App\Http\Requests\Location;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Models\Location;
 
 class LocationUpdateRequest extends FormRequest
 {
+    /** @return array<string, array<int, mixed>> */
     public function rules(): array
     {
-        $id = $this->route('location')?->id;
+        /** @var Location|null $loc */
+        $loc = $this->route('location');
+        $id = $loc?->id;
 
         return [
             'code'  => ['required', 'string', 'max:20', Rule::unique('locations', 'code')->ignore($id)],
@@ -26,8 +30,5 @@ class LocationUpdateRequest extends FormRequest
         ]);
     }
 
-    public function authorize(): bool
-    {
-        return true;
-    }
+    public function authorize(): bool { return true; }
 }
