@@ -1,7 +1,13 @@
 includes:
-  - vendor/nunomaduro/larastan/extension.neon
+    - vendor/nunomaduro/larastan/extension.neon  
 
 parameters:
   paths:
     - app
-  level: 6
+    - database
+    - tests
+  level: 8
+  checkGenericClassInNonGenericObjectType: false
+
+  ignoreErrors:
+    - '#HasFactory but does not specify its types#'
