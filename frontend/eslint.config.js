@@ -1,33 +1,40 @@
-// eslint.config.js (ESM)
-import js from '@eslint/js'
-import reactPlugin from 'eslint-plugin-react'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import tseslint from 'typescript-eslint'
-import globals from 'globals'
+import js from "@eslint/js";
+import globals from "globals";
+import tseslint from "typescript-eslint";
+import react from "eslint-plugin-react";
+import reactHooks from "eslint-plugin-react-hooks";
 
-export default tseslint.config([
+/** @type {import('eslint').Linter.FlatConfig[]} */
+export default [
+  { ignores: ["dist", "node_modules"] },
+
   js.configs.recommended,
   ...tseslint.configs.recommended,
+
   {
-    files: ['**/*.{ts,tsx,js,jsx}'],
+    files: ["**/*.{ts,tsx}"],
     languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: { ...globals.browser, ...globals.node },
+      parser: tseslint.parser,
       parserOptions: {
-        ecmaFeatures: { jsx: true },
-        sourceType: 'module',
+        // Para lint “type-aware”, podrías activar:
+        // project: ["./tsconfig.json"],
+        // tsconfigRootDir: import.meta.dirname,
       },
     },
     plugins: {
-      react: reactPlugin,
-      'react-hooks': reactHooks,
-      'react-refresh': reactRefresh,
+      react,
+      "react-hooks": reactHooks,
     },
     rules: {
-      'react-refresh/only-export-components': 'warn',
-      'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
+      "react/react-in-jsx-scope": "off",
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
+    },
+    settings: {
+      react: { version: "detect" },
     },
   },
-])
+];
