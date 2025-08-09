@@ -2,17 +2,18 @@
 
 namespace App\Models;
 
+use Database\Factories\LocationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * PhpStan/Larastan:
- * - Tipa el trait genérico HasFactory con la factory concreta.
- * - Declara métodos mágicos para evitar falsos positivos.
+ * Ajustes para PHPStan/Larastan:
+ * - Anotamos el trait genérico HasFactory con la factory concreta usando @use.
+ * - Tipamos los arrays de create() y factory() para evitar missingType.iterableValue.
  *
- * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<\Database\Factories\LocationFactory>
- * @method static \Database\Factories\LocationFactory factory(int $count = null, array $state = [])
- * @method static static create(array $attributes = [])
+ * @use \Illuminate\Database\Eloquent\Factories\HasFactory<\Database\Factories\LocationFactory>
+ * @method static static create(array<string, mixed> $attributes = [])
+ * @method static \Database\Factories\LocationFactory factory(int $count = null, array<string, mixed> $state = [])
  */
 class Location extends Model
 {
@@ -20,8 +21,8 @@ class Location extends Model
 
     protected $fillable = ['code', 'name', 'image'];
 
-    protected static function newFactory(): \Database\Factories\LocationFactory
+    protected static function newFactory(): LocationFactory
     {
-        return \Database\Factories\LocationFactory::new();
+        return LocationFactory::new();
     }
 }
