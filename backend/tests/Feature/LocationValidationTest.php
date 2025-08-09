@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Location;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\Location;
 
 class LocationValidationTest extends TestCase
 {
@@ -18,12 +18,12 @@ class LocationValidationTest extends TestCase
         $this->key = (string) config('api.key');
     }
 
-    public function test_requires_api_key()
+    public function test_requires_api_key(): void
     {
         $this->getJson('/api/v1/locations')->assertStatus(401);
     }
 
-    public function test_code_required()
+    public function test_code_required(): void
     {
         $payload = ['name' => 'Ciudad X'];
         $this->withHeaders(['x-api-key' => $this->key])
@@ -32,7 +32,7 @@ class LocationValidationTest extends TestCase
             ->assertJsonPath('error.code', 'E_INVALID_PARAM');
     }
 
-    public function test_name_required()
+    public function test_name_required(): void
     {
         $payload = ['code' => 'CIX'];
         $this->withHeaders(['x-api-key' => $this->key])
@@ -41,7 +41,7 @@ class LocationValidationTest extends TestCase
             ->assertJsonPath('error.code', 'E_INVALID_PARAM');
     }
 
-    public function test_code_unique()
+    public function test_code_unique(): void
     {
         Location::create(['code' => 'DUP', 'name' => 'Duplicada']);
         $payload = ['code' => 'DUP', 'name' => 'Otra'];

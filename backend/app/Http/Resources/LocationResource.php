@@ -20,10 +20,10 @@ class LocationResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'         => $this->id,
-            'code'       => $this->code,
-            'name'       => $this->name,
-            'image'      => $this->image,
+            'id' => $this->id,
+            'code' => $this->code,
+            'name' => $this->name,
+            'image' => $this->image,
             'created_at' => $this->created_at?->toISOString(),
         ];
     }

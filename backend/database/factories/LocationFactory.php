@@ -12,8 +12,8 @@ class LocationFactory extends Factory
     public function definition(): array
     {
         return [
-            'code'  => strtoupper($this->faker->unique()->lexify('???')),
-            'name'  => $this->faker->city(),
+            'code' => strtoupper($this->faker->unique()->lexify('???')),
+            'name' => $this->faker->city(),
             'image' => $this->faker->optional()->imageUrl(640, 480, 'city', true),
         ];
     }

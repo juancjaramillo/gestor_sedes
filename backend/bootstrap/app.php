@@ -12,9 +12,9 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__ . '/../routes/web.php',
-        api: __DIR__ . '/../routes/api.php',
-        commands: __DIR__ . '/../routes/console.php',
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -22,7 +22,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'apikey' => \App\Http\Middleware\ApiKeyMiddleware::class,
         ]);
 
-        // CORS solo para API (elige una de estas dos líneas: api() o append())
         $middleware->api(prepend: [HandleCors::class]);
         // $middleware->append(HandleCors::class);
     })
@@ -35,7 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json([
                 'error' => [
                     'message' => 'Invalid parameters',
-                    'code'    => 'E_INVALID_PARAM',
+                    'code' => 'E_INVALID_PARAM',
                     'details' => $e->errors(),
                 ],
             ], 422);
@@ -45,7 +44,7 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json([
                 'error' => [
                     'message' => 'Unauthorized',
-                    'code'    => 'E_UNAUTHORIZED',
+                    'code' => 'E_UNAUTHORIZED',
                 ],
             ], 401);
         });
@@ -54,7 +53,7 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json([
                 'error' => [
                     'message' => 'Forbidden',
-                    'code'    => 'E_FORBIDDEN',
+                    'code' => 'E_FORBIDDEN',
                 ],
             ], 403);
         });
@@ -71,7 +70,7 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json([
                 'error' => [
                     'message' => $e->getMessage() ?: 'HTTP Error',
-                    'code'    => $code,
+                    'code' => $code,
                 ],
             ], $status);
         });
@@ -80,7 +79,7 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json([
                 'error' => [
                     'message' => 'Server Error',
-                    'code'    => 'E_SERVER_ERROR',
+                    'code' => 'E_SERVER_ERROR',
                 ],
             ], 500);
         });
