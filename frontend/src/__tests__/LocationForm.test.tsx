@@ -4,7 +4,9 @@ import LocationForm from "../components/LocationForm";
 jest.mock("../lib/api", () => ({
   __esModule: true,
   default: {
-    post: jest.fn().mockResolvedValue({ data: { id: 99, code: "NEW", name: "Nueva" } }),
+    post: jest
+      .fn()
+      .mockResolvedValue({ data: { id: 99, code: "NEW", name: "Nueva" } }),
   },
 }));
 
@@ -30,14 +32,24 @@ describe("LocationForm", () => {
     const onCreated = jest.fn();
     render(<LocationForm onCreated={onCreated} />);
 
-    fireEvent.change(screen.getByLabelText(/code/i), { target: { value: "ABC" } });
-    fireEvent.change(screen.getByLabelText(/name/i), { target: { value: "Ciudad ABC" } });
-    fireEvent.change(screen.getByLabelText(/image url/i), { target: { value: "" } });
+    fireEvent.change(screen.getByLabelText(/code/i), {
+      target: { value: "ABC" },
+    });
+    fireEvent.change(screen.getByLabelText(/name/i), {
+      target: { value: "Ciudad ABC" },
+    });
+    fireEvent.change(screen.getByLabelText(/image url/i), {
+      target: { value: "" },
+    });
 
     fireEvent.click(screen.getByRole("button", { name: /create/i }));
 
     await waitFor(() => {
-      expect(api.post).toHaveBeenCalledWith("/v1/locations", { code: "ABC", name: "Ciudad ABC", image: undefined });
+      expect(api.post).toHaveBeenCalledWith("/v1/locations", {
+        code: "ABC",
+        name: "Ciudad ABC",
+        image: undefined,
+      });
       expect(onCreated).toHaveBeenCalled();
     });
   });

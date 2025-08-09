@@ -2,7 +2,7 @@ import axios, { AxiosError } from "axios";
 import type {
   AxiosInstance,
   InternalAxiosRequestConfig,
-  AxiosRequestHeaders
+  AxiosRequestHeaders,
 } from "axios";
 
 const api: AxiosInstance = axios.create({
@@ -33,7 +33,7 @@ api.interceptors.response.use(
       err.message ??
       "Network/Server error";
     return Promise.reject(new Error(message));
-  }
+  },
 );
 
 export default api;

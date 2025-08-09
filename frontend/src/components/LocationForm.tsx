@@ -4,11 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Box, Button, Stack, TextField, Alert } from "@mui/material";
 import api from "../lib/api";
 
-
 const schema = z.object({
   code: z.string().min(1, "Code is required").max(10, "Max 10 chars"),
   name: z.string().min(1, "Name is required").max(100, "Max 100 chars"),
-  image: z.string().url("Invalid URL").optional(), 
+  image: z.string().url("Invalid URL").optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -34,7 +33,10 @@ export default function LocationForm({ onCreated }: { onCreated: () => void }) {
       reset({ code: "", name: "", image: undefined });
       onCreated();
     } catch (e: any) {
-      setError("root", { type: "server", message: e?.message ?? "Request failed" });
+      setError("root", {
+        type: "server",
+        message: e?.message ?? "Request failed",
+      });
     }
   };
 
@@ -60,7 +62,6 @@ export default function LocationForm({ onCreated }: { onCreated: () => void }) {
         />
         <TextField
           label="Image URL"
-         
           {...register("image", {
             setValueAs: (v) =>
               typeof v === "string" && v.trim() === "" ? undefined : v,

@@ -8,7 +8,9 @@ export default function LocationCard({ item }: { item: Location }) {
         <Typography variant="h6">
           {item.name} ({item.code})
         </Typography>
-        {item.image && <img src={item.image} alt={item.name} style={{ maxWidth: 300 }} />}
+        {item.image && (
+          <img src={item.image} alt={item.name} style={{ maxWidth: 300 }} />
+        )}
       </CardContent>
     </Card>
   );

@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
-import { Alert, Box, CircularProgress, Pagination, Stack, TextField, Typography, Button } from "@mui/material";
+import {
+  Alert,
+  Box,
+  CircularProgress,
+  Pagination,
+  Stack,
+  TextField,
+  Typography,
+  Button,
+} from "@mui/material";
 import api from "../lib/api";
 import type { Location, Paginated } from "../types/location";
 import LocationCard from "./LocationCard";
@@ -19,7 +28,9 @@ export default function LocationList() {
       const params: any = { page: p, per_page: 6 };
       if (filters.name) params.name = filters.name;
       if (filters.code) params.code = filters.code;
-      const res = await api.get<Paginated<Location>>("/v1/locations", { params });
+      const res = await api.get<Paginated<Location>>("/v1/locations", {
+        params,
+      });
       setItems(res.data.data);
       setLastPage(res.data.meta.last_page);
     } catch (e: any) {
@@ -47,20 +58,33 @@ export default function LocationList() {
           value={filters.code}
           onChange={(e) => setFilters({ ...filters, code: e.target.value })}
         />
-        <Button variant="outlined" onClick={() => { setPage(1); fetchData(1); }}>
+        <Button
+          variant="outlined"
+          onClick={() => {
+            setPage(1);
+            fetchData(1);
+          }}
+        >
           Search
         </Button>
       </Stack>
 
       {loading && <CircularProgress />}
       {error && <Alert severity="error">{error}</Alert>}
-      {!loading && !error && items.length === 0 && <Typography>No results</Typography>}
+      {!loading && !error && items.length === 0 && (
+        <Typography>No results</Typography>
+      )}
 
       {items.map((it) => (
         <LocationCard key={it.id} item={it} />
       ))}
 
-      <Pagination sx={{ mt: 2 }} page={page} count={lastPage} onChange={(_, v) => setPage(v)} />
+      <Pagination
+        sx={{ mt: 2 }}
+        page={page}
+        count={lastPage}
+        onChange={(_, v) => setPage(v)}
+      />
     </Box>
   );
 }
