@@ -6,9 +6,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<\Database\Factories\LocationFactory>
+ * PhpStan/Larastan:
+ * - Tipa el trait genérico HasFactory con la factory concreta.
+ * - Declara métodos mágicos para evitar falsos positivos.
  *
- * @method static \Database\Factories\LocationFactory factory($count = null, $state = [])
+ * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<\Database\Factories\LocationFactory>
+ * @method static \Database\Factories\LocationFactory factory(int $count = null, array $state = [])
+ * @method static static create(array $attributes = [])
  */
 class Location extends Model
 {

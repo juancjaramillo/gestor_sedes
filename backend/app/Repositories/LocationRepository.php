@@ -23,7 +23,7 @@ class LocationRepository
             $perPage
         );
 
-        $ttl = (int) (config('api.cache_ttl', 30));
+        $ttl = (int) config('api.cache_ttl', 30);
         if ($ttl < 1) {
             $ttl = 30;
         }
@@ -42,7 +42,7 @@ class LocationRepository
             return $q->orderBy('name')->paginate($perPage);
         });
 
-        if (! $result instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator) {
+        if (! $result instanceof LengthAwarePaginator) {
             $q = Location::query();
 
             if (! empty($filters['name'])) {

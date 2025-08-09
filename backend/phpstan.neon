@@ -1,5 +1,5 @@
 includes:
-    - vendor/nunomaduro/larastan/extension.neon
+  - vendor/nunomaduro/larastan/extension.neon
 
 parameters:
   level: 8
@@ -7,8 +7,3 @@ parameters:
     - app
     - database
     - tests
-
-  # (Temporal) silencia el warning del trait genérico de HasFactory
-  ignoreErrors:
-    - '#HasFactory but does not specify its types#'
-    

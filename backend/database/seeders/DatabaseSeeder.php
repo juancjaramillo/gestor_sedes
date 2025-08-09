@@ -10,7 +10,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Usuario de prueba idempotente
-        User::updateOrCreate(
+        User::query()->updateOrCreate(
             ['email' => 'test@example.com'],
             [
                 'name' => 'Test User',

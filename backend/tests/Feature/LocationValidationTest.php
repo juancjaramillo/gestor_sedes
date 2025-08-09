@@ -15,7 +15,8 @@ class LocationValidationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->key = (string) config('api.key');
+        $rawKey = config('api.key');
+        $this->key = is_string($rawKey) ? $rawKey : '';
     }
 
     public function test_requires_api_key(): void
