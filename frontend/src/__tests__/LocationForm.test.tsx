@@ -1,56 +1,24 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import LocationForm from "../components/LocationForm";
-
-jest.mock("../lib/api", () => ({
-  __esModule: true,
-  default: {
-    post: jest
-      .fn()
-      .mockResolvedValue({ data: { id: 99, code: "NEW", name: "Nueva" } }),
-  },
-}));
-
-const api = require("../lib/api").default;
+import * as api from "../lib/api";
 
 describe("LocationForm", () => {
-  test("muestra errores de validación cuando faltan campos", async () => {
-    const onCreated = jest.fn();
-    render(<LocationForm onCreated={onCreated} />);
+  it("envía FormData con archivo cuando se selecciona imagen", async () => {
+    const spyCreate = jest .spyOn(api, "createLocationFD").mockResolvedValue({ data: {} });
+    const onSuccess = jest .fn();
 
-    fireEvent.click(screen.getByRole("button", { name: /create/i }));
+    render(<LocationForm onSuccess={onSuccess} />);
 
-    await waitFor(() => {
-      // Mensajes reales que muestra tu UI (MUI + RHF)
-      expect(screen.getByText(/code is required/i)).toBeInTheDocument();
-      expect(screen.getByText(/name is required/i)).toBeInTheDocument();
-    });
+    fireEvent.change(screen.getByLabelText(/Code/i), { target: { value: "BOG" } });
+    fireEvent.change(screen.getByLabelText(/Name/i), { target: { value: "Bogotá" } });
 
-    expect(onCreated).not.toHaveBeenCalled();
-  });
+    const file = new File([new Uint8Array([1,2,3])], "img.png", { type: "image/png" });
+    const input = screen.getByLabelText(/Imagen/i).parentElement!.querySelector("input[type=file]")!;
+    fireEvent.change(input, { target: { files: [file] } });
 
-  test("envía formulario válido y llama onCreated", async () => {
-    const onCreated = jest.fn();
-    render(<LocationForm onCreated={onCreated} />);
+    fireEvent.click(screen.getByRole("button", { name: /Crear/i }));
 
-    fireEvent.change(screen.getByLabelText(/code/i), {
-      target: { value: "ABC" },
-    });
-    fireEvent.change(screen.getByLabelText(/name/i), {
-      target: { value: "Ciudad ABC" },
-    });
-    fireEvent.change(screen.getByLabelText(/image url/i), {
-      target: { value: "" },
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: /create/i }));
-
-    await waitFor(() => {
-      expect(api.post).toHaveBeenCalledWith("/v1/locations", {
-        code: "ABC",
-        name: "Ciudad ABC",
-        image: undefined,
-      });
-      expect(onCreated).toHaveBeenCalled();
-    });
+    await waitFor(() => expect(spyCreate).toHaveBeenCalledTimes(1));
+    expect(onSuccess).toHaveBeenCalled();
   });
 });

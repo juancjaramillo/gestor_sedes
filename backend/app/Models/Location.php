@@ -17,6 +17,11 @@ class Location extends Model
 
     protected $fillable = ['code', 'name', 'image'];
 
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     protected static function newFactory(): \Database\Factories\LocationFactory
     {
         return \Database\Factories\LocationFactory::new();

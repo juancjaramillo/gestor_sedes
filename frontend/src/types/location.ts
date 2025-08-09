@@ -2,7 +2,8 @@ export interface Location {
   id: number;
   code: string;
   name: string;
-  image?: string | null;
+  image?: string | null;     // ruta relativa en storage (backend)
+  image_url?: string | null; // URL absoluta servida por backend
   created_at?: string;
 }
 

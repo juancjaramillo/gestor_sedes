@@ -1,39 +1,64 @@
-// eslint.config.js
-import js from '@eslint/js'
-import reactPlugin from 'eslint-plugin-react'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import tseslint from 'typescript-eslint'
-import globals from 'globals'
+import js from "@eslint/js";
+import globals from "globals";
+import tseslint from "typescript-eslint";
+import react from "eslint-plugin-react";
+import reactHooks from "eslint-plugin-react-hooks";
 
-export default tseslint.config(
+/** @type {import('eslint').Linter.FlatConfig[]} */
+export default [
+  // Ignorar artefactos
+  { ignores: ["dist", "node_modules"] },
+
+  // Base JS + TS
   js.configs.recommended,
-  ...tseslint.configs.recommended, // reglas base TS
+  ...tseslint.configs.recommended,
+
+  // Regla general para TS/TSX
   {
-    files: ['**/*.{ts,tsx,js,jsx}'],
+    files: ["**/*.{ts,tsx}"],
     languageOptions: {
-      ecmaVersion: 2020,
-      sourceType: 'module',
-      globals: globals.browser,
-      parserOptions: {
-        ecmaFeatures: { jsx: true },
-      },
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: { ...globals.browser, ...globals.node },
+      parser: tseslint.parser,
     },
     plugins: {
-      react: reactPlugin,
-      'react-hooks': reactHooks,
-      'react-refresh': reactRefresh,
+      react,
+      "react-hooks": reactHooks,
     },
-    settings: { react: { version: 'detect' } },
     rules: {
-      // React
-      'react/jsx-uses-react': 'off',
-      'react/react-in-jsx-scope': 'off',
-      // Hooks
-      'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
-      // Fast Refresh (si usas Vite con React)
-      'react-refresh/only-export-components': 'warn',
+      // React 17+ no necesita React en scope
+      "react/react-in-jsx-scope": "off",
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
+      // Mantener estricto en src, aflojamos en tests con override abajo
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-require-imports": "error",
     },
-  }
-)
+    settings: {
+      react: { version: "detect" },
+    },
+  },
+
+  // Override para archivos CJS (como jest.config.cjs)
+  {
+    files: ["**/*.cjs"],
+    languageOptions: {
+      sourceType: "commonjs",
+      globals: { ...globals.node },
+    },
+    rules: {
+      // En CJS, module/require son válidos
+      "no-undef": "off",
+    },
+  },
+
+  // Override para tests: permitir "any" y require en setup utilitario si lo hay
+  {
+    files: ["src/__tests__/**/*.{ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
+];

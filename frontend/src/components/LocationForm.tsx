@@ -1,77 +1,110 @@
-import { useForm, type SubmitHandler } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Box, Button, Stack, TextField, Alert } from "@mui/material";
-import api from "../lib/api";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { createLocationFD, updateLocationFD } from "../lib/api";
+import type { Location } from "../types/location";
 
-const schema = z.object({
-  code: z.string().min(1, "Code is required").max(10, "Max 10 chars"),
-  name: z.string().min(1, "Name is required").max(100, "Max 100 chars"),
-  image: z.string().url("Invalid URL").optional(),
-});
+type Props = {
+  editing?: Location | null;
+  onSuccess: () => void;
+};
 
-type FormData = z.infer<typeof schema>;
+export default function LocationForm({ editing = null, onSuccess }: Props) {
+  const [code, setCode] = useState(editing?.code ?? "");
+  const [name, setName] = useState(editing?.name ?? "");
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-export default function LocationForm({ onCreated }: { onCreated: () => void }) {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    reset,
-    setError,
-    clearErrors,
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: { code: "", name: "", image: undefined }, // <- undefined, no cadena vacía
-    mode: "onBlur",
-  });
+  useEffect(() => {
+    setCode(editing?.code ?? "");
+    setName(editing?.name ?? "");
+    setFile(null);
+  }, [editing?.id]);
 
-  const onSubmit: SubmitHandler<FormData> = async (data) => {
-    clearErrors();
-    try {
-      await api.post("/v1/locations", data);
-      reset({ code: "", name: "", image: undefined });
-      onCreated();
-    } catch (e: any) {
-      setError("root", {
-        type: "server",
-        message: e?.message ?? "Request failed",
-      });
+  const previewUrl = useMemo(() => {
+    if (file) return URL.createObjectURL(file);
+    return editing?.image_url ?? null;
+  }, [file, editing?.image_url]);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!code || !name) {
+      setError("Code y Name son obligatorios");
+      return;
     }
-  };
+    setLoading(true);
+    try {
+      const fd = new FormData();
+      fd.append("code", code);
+      fd.append("name", name);
+      if (file) fd.append("image", file);
+
+      if (editing?.id) await updateLocationFD(editing.id, fd);
+      else await createLocationFD(fd);
+
+      if (inputRef.current) inputRef.current.value = "";
+      setFile(null);
+      setCode("");
+      setName("");
+      onSuccess();
+    } catch (err: any) {
+      setError(err.message ?? "Error al guardar");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mb: 3 }}>
-      {errors.root?.message && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {errors.root.message}
-        </Alert>
-      )}
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+    <Box component="form" onSubmit={onSubmit}>
+      <Stack spacing={2}>
+        {error && <Alert severity="error">{error}</Alert>}
         <TextField
           label="Code"
-          {...register("code")}
-          error={!!errors.code}
-          helperText={errors.code?.message}
+          value={code}
+          onChange={(e) => setCode(e.target.value.toUpperCase())}
+          inputProps={{ maxLength: 20 }}
+          required
         />
         <TextField
           label="Name"
-          {...register("name")}
-          error={!!errors.name}
-          helperText={errors.name?.message}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          inputProps={{ maxLength: 100 }}
+          required
         />
-        <TextField
-          label="Image URL"
-          {...register("image", {
-            setValueAs: (v) =>
-              typeof v === "string" && v.trim() === "" ? undefined : v,
-          })}
-          error={!!errors.image}
-          helperText={errors.image?.message}
-        />
-        <Button type="submit" variant="contained" disabled={isSubmitting}>
-          Create
-        </Button>
+        <Box>
+          <Typography variant="body2" gutterBottom>Imagen (opcional)</Typography>
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/*"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          />
+          {previewUrl && (
+            <Box mt={1}>
+              <img
+                src={previewUrl}
+                alt="preview"
+                style={{ width: 180, height: 120, objectFit: "cover", borderRadius: 8 }}
+              />
+            </Box>
+          )}
+        </Box>
+        <Box>
+          <Button type="submit" variant="contained" disabled={loading}>
+            {loading ? <CircularProgress size={20} /> : (editing ? "Actualizar" : "Crear")}
+          </Button>
+        </Box>
       </Stack>
     </Box>
   );

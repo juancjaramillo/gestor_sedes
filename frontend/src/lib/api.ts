@@ -1,39 +1,41 @@
-import axios, { AxiosError } from "axios";
-import type {
-  AxiosInstance,
-  InternalAxiosRequestConfig,
-  AxiosRequestHeaders,
-} from "axios";
+import axios from "axios";
 
-const api: AxiosInstance = axios.create({
+const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
-  timeout: 10000,
-});
-
-// Request: agrega API Key de forma typesafe
-api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const apiKey = import.meta.env.VITE_API_KEY as string | undefined;
-
-  // Aseguramos que headers siempre exista y sea del tipo correcto
-  const headers: AxiosRequestHeaders = config.headers as AxiosRequestHeaders;
-  if (apiKey) {
-    headers["x-api-key"] = apiKey;
-  }
-  config.headers = headers;
-
-  return config;
-});
-
-// Response: manejo centralizado de errores
-api.interceptors.response.use(
-  (res) => res,
-  (err: AxiosError) => {
-    const message =
-      (err.response?.data as any)?.error?.message ??
-      err.message ??
-      "Network/Server error";
-    return Promise.reject(new Error(message));
+  headers: {
+    "x-api-key": import.meta.env.VITE_API_KEY as string,
   },
+});
+
+api.interceptors.response.use(
+  (r) => r,
+  (error) => {
+    const message =
+      error?.response?.data?.error?.message ??
+      error?.message ??
+      "Network/Unknown error";
+    return Promise.reject(new Error(message));
+  }
 );
+
+export async function listLocations(params: {
+  name?: string;
+  code?: string;
+  page?: number;
+  per_page?: number;
+}) {
+  const res = await api.get("/v1/locations", { params });
+  return res.data;
+}
+
+export async function createLocationFD(fd: FormData) {
+  const res = await api.post("/v1/locations", fd); // multipart automático
+  return res.data;
+}
+
+export async function updateLocationFD(id: number, fd: FormData) {
+  const res = await api.post(`/v1/locations/${id}`, fd);
+  return res.data;
+}
 
 export default api;

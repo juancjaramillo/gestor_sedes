@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import {
   Alert,
   Box,
@@ -15,26 +15,25 @@ import LocationCard from "./LocationCard";
 
 export default function LocationList() {
   const [items, setItems] = useState<Location[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [lastPage, setLastPage] = useState(1);
-  const [filters, setFilters] = useState({ name: "", code: "" });
+  const [page, setPage] = useState<number>(1);
+  const [lastPage, setLastPage] = useState<number>(1);
+  const [filters, setFilters] = useState<{ name: string; code: string }>({ name: "", code: "" });
 
-  const fetchData = async (p = 1) => {
+  const fetchData = async (p: number = 1) => {
     setLoading(true);
     setError(null);
     try {
-      const params: any = { page: p, per_page: 6 };
+      const params: Record<string, string | number> = { page: p, per_page: 6 };
       if (filters.name) params.name = filters.name;
       if (filters.code) params.code = filters.code;
-      const res = await api.get<Paginated<Location>>("/v1/locations", {
-        params,
-      });
+      const res = await api.get<Paginated<Location>>("/v1/locations", { params });
       setItems(res.data.data);
       setLastPage(res.data.meta.last_page);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -56,7 +55,7 @@ export default function LocationList() {
         <TextField
           label="Filter by code"
           value={filters.code}
-          onChange={(e) => setFilters({ ...filters, code: e.target.value })}
+          onChange={(e) => setFilters({ ...filters, code: e.target.value.toUpperCase() })}
         />
         <Button
           variant="outlined"
@@ -75,7 +74,7 @@ export default function LocationList() {
         <Typography>No results</Typography>
       )}
 
-      {items.map((it) => (
+      {items.map((it: Location) => (
         <LocationCard key={it.id} item={it} />
       ))}
 
@@ -83,7 +82,7 @@ export default function LocationList() {
         sx={{ mt: 2 }}
         page={page}
         count={lastPage}
-        onChange={(_, v) => setPage(v)}
+        onChange={(_e: ChangeEvent<unknown>, v: number) => setPage(v)}
       />
     </Box>
   );

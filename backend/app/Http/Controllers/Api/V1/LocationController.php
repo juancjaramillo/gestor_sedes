@@ -3,42 +3,51 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\LocationIndexRequest;
-use App\Http\Requests\LocationStoreRequest;
+use App\Http\Requests\Location\LocationIndexRequest;
+use App\Http\Requests\Location\LocationStoreRequest;
+use App\Http\Requests\Location\LocationUpdateRequest;
 use App\Http\Resources\LocationResource;
+use App\Models\Location;
 use App\Services\LocationService;
 use Illuminate\Http\JsonResponse;
 
 class LocationController extends Controller
 {
-    public function __construct(private readonly LocationService $service) {}
+    public function __construct(private LocationService $service) {}
 
     public function index(LocationIndexRequest $request): JsonResponse
     {
-        $validated = $request->validated();
-        $per = (int) ($validated['per_page'] ?? 10);
-        $items = $this->service->list($validated, $per);
+        $filters = $request->validated();
+        $perPage = (int) ($filters['per_page'] ?? 10);
+
+        $paginator = $this->service->paginateFiltered($filters, $perPage);
 
         return response()->json([
-            'data' => LocationResource::collection($items),
+            'data' => LocationResource::collection($paginator->items()),
             'meta' => [
-                'current_page' => $items->currentPage(),
-                'per_page' => $items->perPage(),
-                'total' => $items->total(),
-                'last_page' => $items->lastPage(),
+                'current_page' => $paginator->currentPage(),
+                'per_page'     => $paginator->perPage(),
+                'total'        => $paginator->total(),
+                'last_page'    => $paginator->lastPage(),
             ],
         ]);
     }
 
     public function store(LocationStoreRequest $request): JsonResponse
     {
-        /** @var array{code:string, name:string, image?:string|null} $data */
-        $data = $request->validated();
-
-        $location = $this->service->create($data);
+        $location = $this->service->create($request->validated(), $request->file('image'));
 
         return response()->json([
             'data' => new LocationResource($location),
         ], 201);
+    }
+
+    public function update(LocationUpdateRequest $request, Location $location): JsonResponse
+    {
+        $location = $this->service->update($location, $request->validated(), $request->file('image'));
+
+        return response()->json([
+            'data' => new LocationResource($location),
+        ]);
     }
 }
