@@ -1,8 +1,18 @@
 {
-  "extends": "./tsconfig.app.json",
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": ["jest", "@testing-library/jest-dom"],
-    "noEmit": true
+    "types": ["jest", "node", "@testing-library/jest-dom"],
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "esModuleInterop": true
   },
-  "include": ["src", "jest.setup.ts"]
+  "include": [
+    "src",
+    "vite-env.d.ts",
+    "jest.setup.ts",
+    "src/types/jest-dom.d.ts"
+  ]
 }
