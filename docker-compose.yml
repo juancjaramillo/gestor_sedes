@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  # Servicio para instalar dependencias PHP del backend (usar manualmente antes de levantar backend)
+  composer:
+    image: composer:2
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    command: composer install --no-interaction
+
+  # Backend Laravel 12 (modo dev simple usando artisan serve)
+  backend:
+    image: php:8.3-cli
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    command: bash -lc "php artisan migrate --seed && php artisan serve --host 0.0.0.0 --port 8000"
+    # Nota: asegura que antes se hayan instalado las dependencias con:
+    #   docker compose run --rm composer
+    # y que exista backend/.env configurado con SQLite.
+
+  # Frontend React + Vite (modo dev)
+  frontend:
+    image: node:20
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "5173:5173"
+    command: bash -lc "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+
+# Uso rápido:
+# 1) Instalar dependencias backend:
+#    docker compose run --rm composer
+# 2) Levantar backend (Laravel 12) y frontend (Vite):
+#    docker compose up backend frontend
+# 3) Backend:  http://localhost:8000
+#    Frontend: http://localhost:5173

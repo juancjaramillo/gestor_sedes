@@ -1,0 +1,12 @@
+﻿# Raíz del monorepo
+/.env
+/backend/.env
+/frontend/.env
+
+# Dependencias
+/backend/vendor/
+/backend/node_modules/
+/frontend/node_modules/
+
+/# Build outputs
+/frontend/dist/
