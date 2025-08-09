@@ -8,7 +8,6 @@ import reactRefresh from "eslint-plugin-react-refresh";
 export default [
   { ignores: ["dist", "coverage"] },
 
-  // Reglas base para TS/JS + React
   {
     files: ["**/*.{js,jsx,ts,tsx}"],
     languageOptions: {
@@ -17,7 +16,7 @@ export default [
       parser: tseslint.parser,
       parserOptions: {
         ecmaFeatures: { jsx: true },
-        project: false, // sin type-aware para velocidad en FE
+        project: false,
       },
       globals: {
         ...globals.browser,
@@ -25,7 +24,6 @@ export default [
       },
     },
     plugins: {
-      // nota: el nombre del plugin en flat config es la variable importada
       react,
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,
@@ -35,16 +33,14 @@ export default [
       ...js.configs.recommended.rules,
       ...react.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
-      // TS recommended “no type-checked” (no requiere project)
       ...tseslint.configs.recommended[0].rules,
-
       "react/react-in-jsx-scope": "off",
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
     },
     settings: { react: { version: "detect" } },
   },
 
-  // Overrides específicos para tests (Jest + Testing Library)
+  // Overrides para tests
   {
     files: ["src/__tests__/**/*.{ts,tsx,js,jsx}", "**/*.test.{ts,tsx,js,jsx}"],
     languageOptions: {
@@ -54,9 +50,7 @@ export default [
       },
     },
     rules: {
-      // Permitimos any en tests para mocks y utilidades
       "@typescript-eslint/no-explicit-any": "off",
-      // Por si usas helpers que requieren require()
       "@typescript-eslint/no-var-requires": "off",
     },
   },

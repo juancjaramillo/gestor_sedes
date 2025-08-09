@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Box,
@@ -84,12 +84,14 @@ export default function LocationForm({ editing = null, onSuccess }: Props) {
           required
         />
         <Box>
-          <Typography variant="body2" gutterBottom>Imagen (opcional)</Typography>
+          <Typography variant="body2" gutterBottom>
+            Imagen (opcional)
+          </Typography>
           <input
             ref={inputRef}
             type="file"
             accept="image/*"
-            aria-label="Imagen"            
+            aria-label="Imagen"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
           {previewUrl && (
@@ -97,14 +99,25 @@ export default function LocationForm({ editing = null, onSuccess }: Props) {
               <img
                 src={previewUrl}
                 alt="preview"
-                style={{ width: 180, height: 120, objectFit: "cover", borderRadius: 8 }}
+                style={{
+                  width: 180,
+                  height: 120,
+                  objectFit: "cover",
+                  borderRadius: 8,
+                }}
               />
             </Box>
           )}
         </Box>
         <Box>
           <Button type="submit" variant="contained" disabled={loading}>
-            {loading ? <CircularProgress size={20} /> : (editing ? "Actualizar" : "Crear")}
+            {loading ? (
+              <CircularProgress size={20} />
+            ) : editing ? (
+              "Actualizar"
+            ) : (
+              "Crear"
+            )}
           </Button>
         </Box>
       </Stack>
