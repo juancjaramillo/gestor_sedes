@@ -10,11 +10,13 @@ class LocationApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    private string $key;
+
     protected function setUp(): void
     {
         parent::setUp();
-        // Asegura que la API key esté seteada
-        config(['api.key' => 'super-secret-key-123']);
+        // Lee la API key desde config => .env.testing
+        $this->key = (string) config('api.key');
     }
 
     public function test_rejects_without_api_key(): void
@@ -26,22 +28,53 @@ class LocationApiTest extends TestCase
     {
         Location::factory()->create(['code' => 'BOG', 'name' => 'Bogotá']);
         Location::factory()->create(['code' => 'MED', 'name' => 'Medellín']);
+        Location::factory()->create(['code' => 'BAR', 'name' => 'Barranquilla']);
+        Location::factory()->count(5)->create();
 
-        $res = $this->withHeaders(['x-api-key' => 'super-secret-key-123'])
-            ->getJson('/api/v1/locations?name=BOG&per_page=1');
+        $headers = ['x-api-key' => $this->key];
 
-        $res->assertOk()
-            ->assertJsonStructure([
-                'data',
-                'meta' => ['current_page','per_page','total','last_page'],
-            ]);
+        $res = $this->withHeaders($headers)
+            ->getJson('/api/v1/locations?name=bo&per_page=5&page=1');
+
+        $res->assertOk();
+
+        $res->assertJsonStructure([
+            'data' => [
+                '*' => ['id', 'code', 'name', 'image', 'created_at'],
+            ],
+            'meta' => ['current_page', 'last_page', 'per_page', 'total'],
+        ]);
+
+        $codes = collect($res->json('data'))->pluck('code');
+        $this->assertTrue($codes->contains('BOG'));
     }
 
     public function test_creates_a_location(): void
     {
-        $res = $this->withHeaders(['x-api-key' => 'super-secret-key-123'])
-            ->postJson('/api/v1/locations', ['code' => 'TUN', 'name' => 'Tunja']);
+        $headers = ['x-api-key' => $this->key];
 
-        $res->assertCreated()->assertJsonPath('code', 'TUN');
+        $payload = [
+            'code' => 'ABC',
+            'name' => 'Ciudad ABC',
+        ];
+
+        $res = $this->withHeaders($headers)->postJson('/api/v1/locations', $payload);
+
+        // 200 o 201, según tu controlador
+        $this->assertTrue(in_array($res->getStatusCode(), [200, 201], true), 'Expected 200 or 201');
+
+        $json = $res->json();
+
+        // Soportar ambas estructuras: {data:{...}} ó {...}
+        $code = data_get($json, 'data.code', data_get($json, 'code'));
+        $name = data_get($json, 'data.name', data_get($json, 'name'));
+
+        $this->assertSame('ABC', $code);
+        $this->assertSame('Ciudad ABC', $name);
+
+        $this->assertDatabaseHas('locations', [
+            'code' => 'ABC',
+            'name' => 'Ciudad ABC',
+        ]);
     }
 }

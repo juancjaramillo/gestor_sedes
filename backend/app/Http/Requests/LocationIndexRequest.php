@@ -6,7 +6,10 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class LocationIndexRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
     protected function prepareForValidation(): void
     {
@@ -16,13 +19,14 @@ class LocationIndexRequest extends FormRequest
         ]);
     }
 
+    /** @return array<string, mixed> */
     public function rules(): array
     {
         return [
-            'name'     => ['nullable','string','max:100'],
-            'code'     => ['nullable','string','max:10'],
-            'page'     => ['nullable','integer','min:1'],
-            'per_page' => ['nullable','integer','min:1','max:100'],
+            'name' => ['nullable', 'string', 'max:100'],
+            'code' => ['nullable', 'string', 'max:10'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
     }
 }

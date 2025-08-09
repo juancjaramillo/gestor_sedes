@@ -23,9 +23,9 @@ class LocationController extends Controller
             'data' => LocationResource::collection($items),
             'meta' => [
                 'current_page' => $items->currentPage(),
-                'per_page'     => $items->perPage(),
-                'total'        => $items->total(),
-                'last_page'    => $items->lastPage(),
+                'per_page' => $items->perPage(),
+                'total' => $items->total(),
+                'last_page' => $items->lastPage(),
             ],
         ]);
     }
@@ -33,6 +33,7 @@ class LocationController extends Controller
     public function store(LocationStoreRequest $request): JsonResponse
     {
         $location = $this->service->create($request->validated());
+
         return response()->json(new LocationResource($location), 201);
     }
 }
