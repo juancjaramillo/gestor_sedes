@@ -18,7 +18,7 @@ class RateLimitTest extends TestCase
         config(['api.rate_limit' => 2]);         // bajamos el límite solo para este test
     }
 
-    public function test_throttles_by_api_key()
+    public function test_throttles_by_api_key(): void
     {
         $headers = ['x-api-key' => $this->key];
 

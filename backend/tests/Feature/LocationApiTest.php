@@ -45,7 +45,10 @@ class LocationApiTest extends TestCase
             'meta' => ['current_page', 'last_page', 'per_page', 'total'],
         ]);
 
-        $codes = collect($res->json('data'))->pluck('code');
+        /** @var array<int, array{id:int,code:string,name:string,image:?string,created_at:?string}> $data */
+        $data = $res->json('data');
+
+        $codes = collect($data)->pluck('code');
         $this->assertTrue($codes->contains('BOG'));
     }
 
@@ -53,6 +56,7 @@ class LocationApiTest extends TestCase
     {
         $headers = ['x-api-key' => $this->key];
 
+        /** @var array{code:string,name:string,image?:string|null} $payload */
         $payload = [
             'code' => 'ABC',
             'name' => 'Ciudad ABC',

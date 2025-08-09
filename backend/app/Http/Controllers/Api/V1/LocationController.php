@@ -32,8 +32,13 @@ class LocationController extends Controller
 
     public function store(LocationStoreRequest $request): JsonResponse
     {
-        $location = $this->service->create($request->validated());
+        /** @var array{code:string, name:string, image?:string|null} $data */
+        $data = $request->validated();
 
-        return response()->json(new LocationResource($location), 201);
+        $location = $this->service->create($data);
+
+        return response()->json([
+            'data' => new LocationResource($location),
+        ], 201);
     }
 }

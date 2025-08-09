@@ -27,7 +27,11 @@ class LocationRepositoryTest extends TestCase
         $repo = app(LocationRepository::class);
         $repo->paginateFiltered(['name' => 'BO'], 10);
 
-        // Assert: remember fue llamado
+        // Assert: 'remember' fue llamado al menos una vez
+        // @phpstan-ignore-next-line -- Método de Mockery en Facade, válido en test
         Cache::shouldHaveReceived('remember')->atLeast()->once();
+        // Si prefieres exacto:
+        // @phpstan-ignore-next-line -- Método de Mockery en Facade, válido en test
+        // Cache::shouldHaveReceived('remember')->once();
     }
 }
