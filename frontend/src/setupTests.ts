@@ -12,5 +12,5 @@ if (!URLMock.createObjectURL) {
   URLMock.createObjectURL = () => "blob:http://localhost/mock";
 }
 if (!URLMock.revokeObjectURL) {
-  URLMock.revokeObjectURL = () => {};
+  URLMock.revokeObjectURL = () => {}; 
 }
