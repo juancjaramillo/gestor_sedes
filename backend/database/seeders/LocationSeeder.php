@@ -2,32 +2,43 @@
 
 namespace Database\Seeders;
 
+use App\Models\Location;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class LocationSeeder extends Seeder
 {
     public function run(): void
     {
-        $now = now();
-        $data = [
-            ['code' => 'BOG', 'name' => 'Bogotá', 'image' => 'https://picsum.photos/seed/bog/640', 'created_at' => $now, 'updated_at' => $now],
-            ['code' => 'MED', 'name' => 'Medellín', 'image' => 'https://picsum.photos/seed/med/640', 'created_at' => $now, 'updated_at' => $now],
-            ['code' => 'CAL', 'name' => 'Cali', 'image' => 'https://picsum.photos/seed/cal/640', 'created_at' => $now, 'updated_at' => $now],
-            ['code' => 'BAR', 'name' => 'Barranquilla', 'image' => 'https://picsum.photos/seed/bar/640', 'created_at' => $now, 'updated_at' => $now],
-            ['code' => 'CAR', 'name' => 'Cartagena', 'image' => 'https://picsum.photos/seed/car/640', 'created_at' => $now, 'updated_at' => $now],
-            ['code' => 'BGA', 'name' => 'Bucaramanga', 'image' => 'https://picsum.photos/seed/bga/640', 'created_at' => $now, 'updated_at' => $now],
-            ['code' => 'PER', 'name' => 'Pereira', 'image' => 'https://picsum.photos/seed/per/640', 'created_at' => $now, 'updated_at' => $now],
-            ['code' => 'MAN', 'name' => 'Manizales', 'image' => 'https://picsum.photos/seed/man/640', 'created_at' => $now, 'updated_at' => $now],
-            ['code' => 'IBG', 'name' => 'Ibagué', 'image' => 'https://picsum.photos/seed/ibg/640', 'created_at' => $now, 'updated_at' => $now],
-            ['code' => 'SMG', 'name' => 'Santa Marta', 'image' => 'https://picsum.photos/seed/smg/640', 'created_at' => $now, 'updated_at' => $now],
+        $rows = [
+            ['code' => 'BOG', 'name' => 'Bogotá',       'seed' => 'bogota'],
+            ['code' => 'MED', 'name' => 'Medellín',     'seed' => 'medellin'],
+            ['code' => 'CAL', 'name' => 'Cali',         'seed' => 'cali'],
+            ['code' => 'BAR', 'name' => 'Barranquilla', 'seed' => 'barranquilla'],
+            ['code' => 'CAR', 'name' => 'Cartagena',    'seed' => 'cartagena'],
+            ['code' => 'BGA', 'name' => 'Bucaramanga',  'seed' => 'bucaramanga'],
+            ['code' => 'PER', 'name' => 'Pereira',      'seed' => 'pereira'],
+            ['code' => 'MAN', 'name' => 'Manizales',    'seed' => 'manizales'],
+            ['code' => 'IBG', 'name' => 'Ibagué',       'seed' => 'ibague'],
+            ['code' => 'SMG', 'name' => 'Santa Marta',  'seed' => 'santamarta'],
         ];
 
-        // Evita romper UNIQUE(code) si se ejecuta más de una vez
-        DB::table('locations')->upsert(
-            $data,
-            ['code'],
-            ['name', 'image', 'updated_at']
-        );
+        foreach ($rows as $row) {
+            $url = "https://picsum.photos/seed/{$row['seed']}/640/360";
+            $resp = Http::timeout(10)->get($url);
+
+            $filename = null;
+            if ($resp->ok()) {
+                $filename = 'locations/' . Str::uuid() . '.jpg';
+                Storage::disk('public')->put($filename, $resp->body());
+            }
+
+            Location::updateOrCreate(
+                ['code' => $row['code']],
+                ['name' => $row['name'], 'image' => $filename]
+            );
+        }
     }
 }

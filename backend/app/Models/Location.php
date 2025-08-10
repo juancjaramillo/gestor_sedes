@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $name
  * @property string|null $image
  * @use HasFactory<\Database\Factories\LocationFactory>
- * @mixin IdeHelperLocation
  */
 class Location extends Model
 {

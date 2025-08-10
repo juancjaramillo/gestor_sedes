@@ -3,33 +3,23 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
+use App\Models\Location;
 
-/**
- * @property-read int $id
- * @property-read string $code
- * @property-read string $name
- * @property-read string|null $image
- * @property-read \Illuminate\Support\Carbon|null $created_at
- */
+/** @mixin Location */
 class LocationResource extends JsonResource
 {
-    /** @return array<string, mixed> */
     public function toArray($request): array
     {
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-        $disk = Storage::disk('public');
-
-        $image = $this->image ?: null;
-        $imageUrl = $image ? $disk->url($image) : null;
+        /** @var Location $loc */
+        $loc = $this->resource;
 
         return [
-            'id'         => $this->id,
-            'code'       => $this->code,
-            'name'       => $this->name,
-            'image'      => $image,
-            'image_url'  => $imageUrl,
-            'created_at' => $this->created_at?->toISOString(),
+            'id'         => $loc->id,
+            'code'       => $loc->code,
+            'name'       => $loc->name,
+            'image_url'  => $loc->image ? asset("storage/{$loc->image}") : null,
+            'created_at' => $loc->created_at?->toISOString(),
+            'updated_at' => $loc->updated_at?->toISOString(),
         ];
     }
 }
