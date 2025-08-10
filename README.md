@@ -1,236 +1,167 @@
 # Gestor de Sedes
 
-[![CI Backend](https://github.com/juancjaramillo/gestor_sedes/actions/workflows/backend.yml/badge.svg)](https://github.com/juancjaramillo/gestor_sedes/actions/workflows/backend.yml)
-[![CI Frontend](https://github.com/juancjaramillo/gestor_sedes/actions/workflows/frontend.yml/badge.svg)](https://github.com/juancjaramillo/gestor_sedes/actions/workflows/frontend.yml)
+[![CI Backend](https://github.com/juancjaramillo/gestor_sedes/actions/workflows/backend.yml/badge.svg?branch=main)](https://github.com/juancjaramillo/gestor_sedes/actions/workflows/backend.yml)
+[![CI Frontend](https://github.com/juancjaramillo/gestor_sedes/actions/workflows/frontend.yml/badge.svg?branch=main)](https://github.com/juancjaramillo/gestor_sedes/actions/workflows/frontend.yml)
 
-Aplicación CRUD para gestionar **sedes** (Laravel + React + Vite + MUI). Este README te guía para levantar el proyecto **desde cero**, correr tests/lint, y entender el **CI** (GitHub Actions).
+Aplicación full‑stack para gestionar sedes (Laravel + React/Vite + TypeScript). Incluye tests de backend con PHPUnit y de frontend con Jest + React Testing Library, además de pipelines de CI en GitHub Actions.
 
 ---
 
-## 1) Requisitos
+## Requisitos
 
-- **PHP 8.3** y **Composer**
-- **Node.js 20.x** y **npm**
-- **SQLite 3** (recomendado para desarrollo/CI) o MySQL
+- **PHP 8.2+** (recomendado 8.3) con Composer
+- **Node 20.x** y npm
+- **SQLite** (para desarrollo y CI) o **MySQL/PostgreSQL** si prefieres
 - Git
 
-> En Windows, usa *PowerShell*; en Linux/Mac, la *terminal*.
+> El proyecto está preparado para **SQLite** por defecto (más simple para desarrollo y CI).
 
 ---
 
-## 2) Clonar e instalar dependencias
+## Estructura
+
+```
+backend/     # Laravel API
+frontend/    # Vite + React + TypeScript
+.github/workflows/
+  ├─ backend.yml   # CI del backend
+  └─ frontend.yml  # CI del frontend
+```
+
+---
+
+## Setup rápido (todo)
 
 ```bash
 git clone https://github.com/juancjaramillo/gestor_sedes.git
 cd gestor_sedes
 ```
 
-### Backend
+### 1) Backend (Laravel)
+
 ```bash
 cd backend
+
+# 1) Instalar dependencias
 composer install
+
+# 2) Configurar entorno
+cp .env.example .env
+php artisan key:generate
+
+# 3) Base de datos (SQLite recomendado)
+mkdir -p database
+# Linux/macOS:
+touch database/database.sqlite
+# Windows PowerShell:
+# New-Item -ItemType File -Path database\database.sqlite | Out-Null
+
+# 4) Ajustar .env para SQLite
+# En .env asegúrate de tener:
+# DB_CONNECTION=sqlite
+# DB_DATABASE=absolute/path/a/backend/database/database.sqlite
+# (en Windows usa rutas con backslashes)
+
+# 5) Migraciones y seed
+php artisan migrate
+php artisan db:seed
+
+# 6) Levantar el backend
+php artisan serve
+# => http://127.0.0.1:8000
 ```
 
-### Frontend
+> Si estás usando MySQL/PostgreSQL cambia `DB_CONNECTION`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` en `.env` y omite la parte de SQLite.
+
+#### Ejecutar tests de backend
 ```bash
-cd ../frontend
-npm ci
-```
-
----
-
-## 3) Configurar el Backend (Laravel)
-
-Desde `gestor_sedes/backend`:
-
-1. **Variables de entorno**  
-   - Crea tu archivo `.env`:
-     ```bash
-     cp .env.example .env    # Linux/Mac
-     # PowerShell (Windows):
-     copy .env.example .env
-     ```
-
-2. **APP_KEY (obligatorio)**  
-   ```bash
-   php artisan key:generate
-   ```
-
-3. **Base de datos (SQLite recomendado)**  
-   - Crea el archivo de base de datos:
-     ```bash
-     # Linux/Mac
-     mkdir -p database && touch database/database.sqlite
-
-     # PowerShell (Windows)
-     New-Item -ItemType Directory -Force -Path .\database | Out-Null
-     New-Item -ItemType File -Force -Path .\database\database.sqlite | Out-Null
-     ```
-   - En `.env`, deja:
-     ```dotenv
-     DB_CONNECTION=sqlite
-     DB_DATABASE=database/database.sqlite
-     ```
-
-   > Si prefieres MySQL, ajusta `DB_CONNECTION=mysql`, host, usuario, clave y nombre de BD.
-
-4. **Migraciones y Seeders**  
-   Crea/estructura tablas y carga datos de prueba:
-   ```bash
-   php artisan migrate --seed
-   # Si quieres limpiar y recrear todo:
-   # php artisan migrate:fresh --seed
-   ```
-
-5. **(Opcional) Storage symlink** si subes archivos:
-   ```bash
-   php artisan storage:link
-   ```
-
-6. **Levantar API**  
-   ```bash
-   php artisan serve
-   # http://127.0.0.1:8000
-   ```
-
-### Seguridad por API Key (si aplica)
-Si tu middleware exige API key, agrega en `backend/.env` una clave (ejemplo):
-```dotenv
-API_KEY=dev-123456
-```
-y envía ese valor desde el frontend como header (típicamente `X-API-KEY: dev-123456`). Ajusta el nombre del header según tu middleware.
-
----
-
-## 4) Configurar el Frontend (React + Vite)
-
-Desde `gestor_sedes/frontend`:
-
-1. **Variables de entorno**  
-   ```bash
-   cp .env.example .env      # Linux/Mac
-   # PowerShell (Windows)
-   copy .env.example .env
-   ```
-   En `frontend/.env` define al menos:
-   ```dotenv
-   VITE_API_BASE_URL=http://127.0.0.1:8000
-   # Si usas API Key:
-   # VITE_API_KEY=dev-123456
-   ```
-
-2. **Alias `@`**  
-   El alias `@` apunta a `frontend/src`. Ya está definido en `tsconfig.json` y usado por Vite.
-
-3. **Correr en desarrollo**
-   ```bash
-   npm run dev
-   # http://localhost:5173
-   ```
-
-4. **Build de producción**
-   ```bash
-   npm run build
-   npm run preview
-   ```
-
----
-
-## 5) Tests y Lint
-
-### Backend (PHPUnit)
-```bash
-cd backend
 php artisan test
 ```
 
-### Frontend (Jest + RTL) y ESLint
+### 2) Frontend (Vite + React + TS)
+
+En otra terminal:
+
 ```bash
 cd frontend
-npm test -- --watch=false
+
+# 1) Instalar dependencias
+npm ci  # o npm install
+
+# 2) Variables de entorno del frontend
+cp .env.example .env
+# Abre .env y ajusta la URL de la API si hace falta, por ejemplo:
+# VITE_API_BASE_URL=http://127.0.0.1:8000
+
+# 3) Desarrollo
+npm run dev
+# => http://localhost:5173
+
+# 4) Linter y tests
 npm run lint
-```
+npm test -- --watch=false
 
-> Nota: Los tests de React usan `jsdom` y `@testing-library/*`. Las advertencias de `ts-jest` sobre `isolatedModules` son esperadas: ya está configurado en `tsconfig.jest.json`.
-
----
-
-## 6) Endpoints principales (API)
-
-- `GET /api/locations` — Lista paginada.
-- `POST /api/locations` — Crea una sede.
-- `PUT /api/locations/{id}` — Actualiza una sede.
-- `DELETE /api/locations/{id}` — Elimina una sede.
-
-Ejemplo rápido con `curl` (crear):
-```bash
-curl -X POST http://127.0.0.1:8000/api/locations   -H "Content-Type: application/json"   -H "X-API-KEY: dev-123456" \ 
-  -d '{"name":"Sede Norte","address":"Calle 1 #23-45","phone":"+57 300 123 4567"}'
+# 5) Build de producción
+npm run build
 ```
 
 ---
 
-## 7) Integración Continua (GitHub Actions)
+## Poblar datos (migraciones + seeder)
 
-Los workflows viven en `.github/workflows/` y se ejecutan en **push** y **pull requests**.
-
-- **Backend:** `.github/workflows/backend.yml`  
-  Instala PHP y Composer, prepara `.env`, ejecuta migraciones + seeders y corre tests.
-
-- **Frontend:** `.github/workflows/frontend.yml`  
-  Instala Node 20, corre `lint`, `test` y `build`. Sube el `dist/` como artifact.
-
-Badges al inicio del README apuntan a estos workflows.
-
-> Si tienes un `ci.yml` viejo, **elimínalo** para evitar duplicados:
-> ```bash
-> git rm .github/workflows/ci.yml
-> git commit -m "ci: remove legacy ci.yml"
-> git push
-> ```
-
----
-
-## 8) Problemas comunes (Troubleshooting)
-
-- **CRLF/LF en Git (Windows):** El repo incluye `.gitattributes` para normalizar saltos de línea. Si ves advertencias, puedes re-normalizar:
+- En **local**:
   ```bash
-  git add --renormalize .
-  git commit -m "chore(git): normalize line endings"
+  cd backend
+  php artisan migrate
+  php artisan db:seed
   ```
 
-- **Alias `@` no resuelto:** Verifica `paths` en `frontend/tsconfig.json` y reinicia Vite.
-
-- **Node incorrecto:** Este repo pide **Node 20.x** (`"engines"` en `package.json`). En GitHub Actions los workflows ya usan 20.x.
-
-- **Jest: “not wrapped in act(...)”:** En tests simulamos `act()` y filtramos ese warning con el `console.error` spy en `src/test/setup.ts`.
+- En **CI** (GitHub Actions) ya está automatizado:
+  - Se ejecuta `migrate --force` y `db:seed --force` contra SQLite.
 
 ---
 
-## 9) Scripts útiles
+## CI (GitHub Actions)
 
-### Backend
-```bash
-php artisan migrate:fresh --seed
-php artisan tinker
-php artisan route:list
-```
+Este repo incluye dos workflows:
 
-### Frontend
-```bash
-npm run dev
-npm run build
-npm run preview
-npm run lint
-npm test -- --watch=false
-```
+- **CI Backend**: `/.github/workflows/backend.yml`  
+  - Instala PHP y Composer  
+  - Prepara SQLite y `.env`  
+  - Ejecuta migraciones + seed  
+  - Corre `php artisan test`
+
+- **CI Frontend**: `/.github/workflows/frontend.yml`  
+  - Instala Node 20.x  
+  - `npm ci`, `npm run lint`, `npm test`, `npm run build`
+
+Los *badges* del README apuntan a `main`. Asegúrate de tener los archivos `backend.yml` y `frontend.yml` en tu rama `main` para que aparezcan con estado.
 
 ---
 
-## 10) Licencia
+## Solución de problemas
 
-licencia MIT 
+- **Badges “no status”**: confirma que existen `backend.yml` y `frontend.yml` en `main` y que el nombre de archivo coincide con el badge. Haz al menos un push para disparar los workflows.
+- **`Unknown option "--no-interaction"`** en CI del backend: usa `php artisan test` o `php artisan -n test`. (Este README y el workflow ya lo usan sin ese flag.)
+- **`EBADENGINE Node 20.x`**: instala Node **20.x** localmente o usa `nvm`/`nvm-windows` para fijar versión.
+- **Rutas CORS/URL API**: ajusta `VITE_API_BASE_URL` en `frontend/.env` para que apunte a tu backend.
 
 ---
 
+## Scripts útiles
 
+**Backend**  
+- `php artisan migrate:fresh --seed` – recrea tablas y re‑siembra
+- `php artisan storage:link` – enlaza almacenamiento público
+
+**Frontend**  
+- `npm run dev` – servidor de desarrollo Vite  
+- `npm run build` – build de producción  
+- `npm run lint` – ESLint  
+- `npm test -- --watch=false` – tests una sola vez
+
+---
+
+## Licencia
+
+MIT
