@@ -6,7 +6,7 @@
   "engines": { "node": "20.x" },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "jest --passWithNoTests",
