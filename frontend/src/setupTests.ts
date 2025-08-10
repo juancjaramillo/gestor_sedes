@@ -1,16 +1,10 @@
 import "@testing-library/jest-dom";
 
-// Mock estable para jsdom (URL.createObjectURL / revokeObjectURL)
-type URLWithObjectURL = typeof URL & {
-  createObjectURL?: (obj: Blob) => string;
-  revokeObjectURL?: (url: string) => void;
-};
-
-const URLMock = URL as URLWithObjectURL;
-
-if (!URLMock.createObjectURL) {
-  URLMock.createObjectURL = () => "blob:http://localhost/mock";
-}
-if (!URLMock.revokeObjectURL) {
-  URLMock.revokeObjectURL = () => {}; 
+// JSDOM no implementa createObjectURL/revokeObjectURL.
+// Evitamos variables intermedias para no caer en eslint "no-unused-vars".
+if (typeof URL.createObjectURL !== "function" || typeof URL.revokeObjectURL !== "function") {
+  Object.assign(URL, {
+    createObjectURL: URL.createObjectURL ?? (() => "blob:http://localhost/mock"),
+    revokeObjectURL: URL.revokeObjectURL ?? (() => {}),
+  });
 }

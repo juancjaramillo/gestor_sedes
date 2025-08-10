@@ -8,7 +8,7 @@ module.exports = {
     ],
   },
   extensionsToTreatAsEsm: [".ts", ".tsx"],
-  setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],
+  setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],  // <-- aquí
   moduleNameMapper: {
     "^.+\\.(css|less|scss)$": "identity-obj-proxy",
   },

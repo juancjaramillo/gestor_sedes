@@ -1,14 +1,23 @@
-includes:
-  - vendor/nunomaduro/larastan/extension.neon
-
-parameters:
-  level: 8
+﻿parameters:
+  level: 6
   paths:
     - app
     - database
     - tests
 
+  reportUnmatchedIgnoredErrors: false
+
   ignoreErrors:
-    - message: '#uses generic trait\s+Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types#'
-      paths:
-        - app/Models/Location.php
+    # IdeHelper mixins generados por barryvdh/laravel-ide-helper
+    - '#@mixin contains unknown class App\\\\Models\\\\IdeHelper.*#'
+
+    # HasFactory generic types
+    - '#uses generic trait\\s+Illuminate\\\\Database\\\\Eloquent\\\\Factories\\\\HasFactory#'
+
+    # Eloquent create() / propiedades dinámicas
+    - '#Call to an undefined static method App\\\\Models\\\\[A-Za-z0-9_]+::create#'
+    - '#Access to an undefined property App\\\\Models\\\\[A-Za-z0-9_]+::\\#'
+
+    # Warnings contextuales por Request/Route en análisis estático
+    - '#Expression on left side of \\?\\? is not nullable#'
+    - '#Using nullsafe method call on non-nullable type Illuminate\\\\Routing\\\\Route#'

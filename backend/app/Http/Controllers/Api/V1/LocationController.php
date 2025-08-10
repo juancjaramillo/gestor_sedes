@@ -13,7 +13,9 @@ use Illuminate\Http\JsonResponse;
 
 class LocationController extends Controller
 {
-    public function __construct(private LocationService $service) {}
+    public function __construct(private LocationService $service)
+    {
+    }
 
     public function index(LocationIndexRequest $request): JsonResponse
     {

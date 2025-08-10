@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class LocationStoreRequest extends FormRequest
 {
-    /** @return array<string, array<int, string>> */
+      /** @return array<string, mixed> */
     public function rules(): array
     {
         return [
@@ -24,5 +24,8 @@ class LocationStoreRequest extends FormRequest
         ]);
     }
 
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 }

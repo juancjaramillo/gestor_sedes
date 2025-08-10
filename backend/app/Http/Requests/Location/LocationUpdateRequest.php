@@ -8,17 +8,16 @@ use App\Models\Location;
 
 class LocationUpdateRequest extends FormRequest
 {
-    /** @return array<string, array<int, mixed>> */
+  /** @return array<string, mixed> */
     public function rules(): array
     {
-        /** @var Location|null $loc */
-        $loc = $this->route('location');
-        $id = $loc?->id;
+        $param = $this->route('location');
+        $id = $param instanceof \App\Models\Location ? $param->id : null;
 
         return [
-            'code'  => ['required', 'string', 'max:20', Rule::unique('locations', 'code')->ignore($id)],
-            'name'  => ['required', 'string', 'max:100'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        'code'  => ['required', 'string', 'max:20', Rule::unique('locations', 'code')->ignore($id)],
+        'name'  => ['required', 'string', 'max:100'],
+        'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ];
     }
 
@@ -30,5 +29,8 @@ class LocationUpdateRequest extends FormRequest
         ]);
     }
 
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 }

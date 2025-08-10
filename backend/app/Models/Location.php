@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<\Database\Factories\LocationFactory>
- *
- * @method static static create(array<string, mixed> $attributes = [])
- * @method static \Database\Factories\LocationFactory factory(int $count = null, array<string, mixed> $state = [])
+ * @property int $id
+ * @property string $code
+ * @property string $name
+ * @property string|null $image
+ * @use HasFactory<\Database\Factories\LocationFactory>
+ * @mixin IdeHelperLocation
  */
 class Location extends Model
 {
@@ -17,13 +19,11 @@ class Location extends Model
 
     protected $fillable = ['code', 'name', 'image'];
 
+    /** @var array<string, string> */
     protected $casts = [
+        'id' => 'integer',
+        'image' => 'string',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
-
-    protected static function newFactory(): \Database\Factories\LocationFactory
-    {
-        return \Database\Factories\LocationFactory::new();
-    }
 }

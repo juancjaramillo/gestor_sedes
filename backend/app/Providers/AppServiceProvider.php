@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\RateLimiter;
 
 class AppServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+    }
 
     public function boot(): void
     {
@@ -21,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
             // por ruta para que no “contamine” entre endpoints en la misma key
             $route = $request->route()?->uri() ?? 'unknown';
 
-            return Limit::perMinute(2)->by($identity.'|'.$route);
+            return Limit::perMinute(2)->by($identity . '|' . $route);
         });
     }
 }

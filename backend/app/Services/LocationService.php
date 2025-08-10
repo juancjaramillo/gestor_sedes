@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\Storage;
 
 class LocationService
 {
-    public function __construct(private LocationRepository $repo) {}
+    public function __construct(private LocationRepository $repo)
+    {
+    }
 
     /**
      * @param  array<string, mixed>  $filters
