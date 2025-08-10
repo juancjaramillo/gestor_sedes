@@ -1,12 +1,11 @@
-export interface Location {
+export type Location = {
   id: number;
   code: string;
   name: string;
   image?: string | null;
-  created_at?: string;
-}
+};
 
-export interface Paginated<T> {
+export type Paginated<T> = {
   data: T[];
-  meta: { current_page: number; per_page: number; total: number; last_page: number };
-}
+  meta: { last_page: number };
+};

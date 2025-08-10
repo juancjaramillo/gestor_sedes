@@ -18,13 +18,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Alias para usarlo por ruta (NO global)
         $middleware->alias([
             'apikey' => \App\Http\Middleware\ApiKeyMiddleware::class,
         ]);
 
-        // CORS solo para API (elige una de estas dos líneas: api() o append())
+        // CORS en el grupo api
         $middleware->api(prepend: [HandleCors::class]);
-        // $middleware->append(HandleCors::class);
+        // Importante: NO uses ->append(ApiKeyMiddleware::class) aquí.
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->shouldRenderJsonWhen(function (Request $request, \Throwable $e) {

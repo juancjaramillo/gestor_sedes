@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Locations para la prueba
+      
         $this->call(LocationSeeder::class);
     }
 }

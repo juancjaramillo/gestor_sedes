@@ -2,32 +2,52 @@
 
 namespace Database\Seeders;
 
+use App\Models\Location;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 class LocationSeeder extends Seeder
 {
     public function run(): void
     {
-        $now = now();
-        $data = [
-            ['code' => 'BOG', 'name' => 'Bogotá', 'image' => 'https://picsum.photos/seed/bog/640', 'created_at' => $now, 'updated_at' => $now],
-            ['code' => 'MED', 'name' => 'Medellín', 'image' => 'https://picsum.photos/seed/med/640', 'created_at' => $now, 'updated_at' => $now],
-            ['code' => 'CAL', 'name' => 'Cali', 'image' => 'https://picsum.photos/seed/cal/640', 'created_at' => $now, 'updated_at' => $now],
-            ['code' => 'BAR', 'name' => 'Barranquilla', 'image' => 'https://picsum.photos/seed/bar/640', 'created_at' => $now, 'updated_at' => $now],
-            ['code' => 'CAR', 'name' => 'Cartagena', 'image' => 'https://picsum.photos/seed/car/640', 'created_at' => $now, 'updated_at' => $now],
-            ['code' => 'BGA', 'name' => 'Bucaramanga', 'image' => 'https://picsum.photos/seed/bga/640', 'created_at' => $now, 'updated_at' => $now],
-            ['code' => 'PER', 'name' => 'Pereira', 'image' => 'https://picsum.photos/seed/per/640', 'created_at' => $now, 'updated_at' => $now],
-            ['code' => 'MAN', 'name' => 'Manizales', 'image' => 'https://picsum.photos/seed/man/640', 'created_at' => $now, 'updated_at' => $now],
-            ['code' => 'IBG', 'name' => 'Ibagué', 'image' => 'https://picsum.photos/seed/ibg/640', 'created_at' => $now, 'updated_at' => $now],
-            ['code' => 'SMG', 'name' => 'Santa Marta', 'image' => 'https://picsum.photos/seed/smg/640', 'created_at' => $now, 'updated_at' => $now],
+      
+        if (! File::exists(public_path('storage'))) {
+            Artisan::call('storage:link');
+        }
+
+        $rows = [
+            ['code' => 'BOG', 'name' => 'Bogotá',       'file' => 'bogota.jpg'],
+            ['code' => 'MED', 'name' => 'Medellín',     'file' => 'medellin.jpg'],
+            ['code' => 'CAL', 'name' => 'Cali',         'file' => 'cali.jpg'],
+            ['code' => 'BAR', 'name' => 'Barranquilla', 'file' => 'barranquilla.jpg'],
+            ['code' => 'CAR', 'name' => 'Cartagena',    'file' => 'cartagena.jpg'],
+            ['code' => 'BGA', 'name' => 'Bucaramanga',  'file' => 'bucaramanga.jpg'],
+            ['code' => 'PER', 'name' => 'Pereira',      'file' => 'pereira.jpg'],
+            ['code' => 'MAN', 'name' => 'Manizales',    'file' => 'manizales.jpg'],
+            ['code' => 'IBG', 'name' => 'Ibagué',       'file' => 'ibague.jpg'],
+            ['code' => 'SMG', 'name' => 'Santa Marta',  'file' => 'santamarta.jpg'],
         ];
 
-        // Evita romper UNIQUE(code) si se ejecuta más de una vez
-        DB::table('locations')->upsert(
-            $data,
-            ['code'],
-            ['name', 'image', 'updated_at']
-        );
+        $srcDir = resource_path('seeders/locations');
+
+        foreach ($rows as $row) {
+            $imageUrl = null;
+
+            $src = $srcDir . DIRECTORY_SEPARATOR . $row['file'];
+            if (File::exists($src)) {
+                $target = 'locations/' . $row['file'];
+                Storage::disk('public')->put($target, File::get($src));
+
+            
+                $imageUrl = Storage::url($target);
+            }
+
+            Location::updateOrCreate(
+                ['code' => $row['code']],
+                ['name' => $row['name'], 'image' => $imageUrl]
+            );
+        }
     }
 }

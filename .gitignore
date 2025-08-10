@@ -1,12 +1,43 @@
-﻿# Raíz del monorepo
-/.env
-/backend/.env
-/frontend/.env
+﻿# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Dependencias
-/backend/vendor/
-/backend/node_modules/
-/frontend/node_modules/
+# Coverage y artefactos
+**/coverage/
+**/.eslintcache
+**/.tsbuildinfo
 
-/# Build outputs
-/frontend/dist/
+# ===== Frontend =====
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+frontend/.env
+frontend/.env.local
+!frontend/.env.example
+
+# ===== Backend =====
+backend/vendor/
+backend/.phpunit.cache/
+backend/.phpunit.result.cache
+backend/storage/*.key
+backend/storage/logs/
+backend/storage/framework/
+backend/public/hot
+backend/public/build
+backend/public/storage
+
+# .env reales -> ignorados
+backend/.env
+backend/.env.local
+!backend/.env.example
+# Importante: NO ignorar .env.testing (se sube con valores dummy para CI)
+!backend/.env.testing
+
+# Subidas (imágenes) fuera del repo
+backend/storage/app/public/**
+!backend/storage/app/public/.gitkeep

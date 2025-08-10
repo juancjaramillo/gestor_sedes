@@ -1,44 +1,39 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import LocationForm from "../components/LocationForm";
+import LocationForm from "@/components/LocationForm";
 
-jest.mock("../lib/api", () => ({
+jest.mock("@/lib/api", () => ({
   __esModule: true,
-  default: {
-    post: jest.fn().mockResolvedValue({ data: { id: 99, code: "NEW", name: "Nueva" } }),
-  },
+  createLocationFD: jest.fn(),
 }));
 
-const api = require("../lib/api").default;
+import { createLocationFD } from "@/lib/api";
 
 describe("LocationForm", () => {
-  test("muestra errores de validación cuando faltan campos", async () => {
-    const onCreated = jest.fn();
-    render(<LocationForm onCreated={onCreated} />);
-
-    fireEvent.click(screen.getByRole("button", { name: /create/i }));
-
-    await waitFor(() => {
-      // Mensajes reales que muestra tu UI (MUI + RHF)
-      expect(screen.getByText(/code is required/i)).toBeInTheDocument();
-      expect(screen.getByText(/name is required/i)).toBeInTheDocument();
-    });
-
-    expect(onCreated).not.toHaveBeenCalled();
+  beforeEach(() => {
+    (createLocationFD as jest.Mock).mockReset();
   });
 
-  test("envía formulario válido y llama onCreated", async () => {
+  test("envía datos válidos y ejecuta callback onCreated", async () => {
     const onCreated = jest.fn();
+
+    (createLocationFD as jest.Mock).mockResolvedValue({
+      id: 1,
+      code: "ABC",
+      name: "Ciudad ABC",
+      image: null,
+    });
+
     render(<LocationForm onCreated={onCreated} />);
 
-    fireEvent.change(screen.getByLabelText(/code/i), { target: { value: "ABC" } });
-    fireEvent.change(screen.getByLabelText(/name/i), { target: { value: "Ciudad ABC" } });
-    fireEvent.change(screen.getByLabelText(/image url/i), { target: { value: "" } });
-
-    fireEvent.click(screen.getByRole("button", { name: /create/i }));
+    fireEvent.change(screen.getByLabelText(/código/i), { target: { value: "ABC" } });
+    fireEvent.change(screen.getByLabelText(/nombre/i), { target: { value: "Ciudad ABC" } });
+    fireEvent.click(screen.getByRole("button", { name: /crear/i }));
 
     await waitFor(() => {
-      expect(api.post).toHaveBeenCalledWith("/v1/locations", { code: "ABC", name: "Ciudad ABC", image: undefined });
-      expect(onCreated).toHaveBeenCalled();
+      expect(createLocationFD).toHaveBeenCalledWith(expect.any(FormData));
+      expect(onCreated).toHaveBeenCalledWith(
+        expect.objectContaining({ code: "ABC", name: "Ciudad ABC" })
+      );
     });
   });
 });

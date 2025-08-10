@@ -19,7 +19,7 @@ return [
     */
     'allowed_methods' => ['*'],
 
-    // Para desarrollo, agrega los orígenes exactos donde corre tu Vite:
+    
     'allowed_origins' => [
         'http://127.0.0.1:5173',
         'http://localhost:5173',
@@ -27,7 +27,7 @@ return [
 
     'allowed_origins_patterns' => [],
 
-    // Permitimos todos los headers (incluye x-api-key)
+   
     'allowed_headers' => ['*'],
 
     /*

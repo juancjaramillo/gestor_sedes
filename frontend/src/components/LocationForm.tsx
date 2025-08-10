@@ -1,76 +1,95 @@
-import { useForm, type SubmitHandler } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Box, Button, Stack, TextField, Alert } from "@mui/material";
-import api from "../lib/api";
+import { useState } from "react";
+import { Box, Button, Stack, TextField, Typography, Alert } from "@mui/material";
+import { createLocationFD } from "@/lib/api";
 
+type Props = {
+  onCreated?: (loc: { code: string; name: string; image?: string | null }) => void;
+  onSuccess?: () => void;
+};
 
-const schema = z.object({
-  code: z.string().min(1, "Code is required").max(10, "Max 10 chars"),
-  name: z.string().min(1, "Name is required").max(100, "Max 100 chars"),
-  image: z.string().url("Invalid URL").optional(), 
-});
+export default function LocationForm({ onCreated, onSuccess }: Props) {
+  const [code, setCode] = useState("");
+  const [name, setName] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-type FormData = z.infer<typeof schema>;
+  function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0] || null;
+    setFile(f);
+    setPreview(f ? URL.createObjectURL(f) : null);
+  }
 
-export default function LocationForm({ onCreated }: { onCreated: () => void }) {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    reset,
-    setError,
-    clearErrors,
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: { code: "", name: "", image: undefined }, // <- undefined, no cadena vacía
-    mode: "onBlur",
-  });
-
-  const onSubmit: SubmitHandler<FormData> = async (data) => {
-    clearErrors();
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
     try {
-      await api.post("/v1/locations", data);
-      reset({ code: "", name: "", image: undefined });
-      onCreated();
-    } catch (e: any) {
-      setError("root", { type: "server", message: e?.message ?? "Request failed" });
+      const fd = new FormData();
+      fd.append("code", code.trim());
+      fd.append("name", name.trim());
+      if (file) fd.append("image", file);
+
+      const created = await createLocationFD(fd);
+
+      setCode("");
+      setName("");
+      setFile(null);
+      setPreview(null);
+
+      onCreated?.({ code: created.code, name: created.name, image: created.image ?? null });
+      onSuccess?.();
+    } catch (err: unknown) {
+      const msg =
+        typeof err === "object" && err && "message" in err
+          ? String((err as { message?: string }).message || "Error")
+          : "Error";
+      setError(msg);
+    } finally {
+      setLoading(false);
     }
-  };
+  }
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mb: 3 }}>
-      {errors.root?.message && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {errors.root.message}
-        </Alert>
-      )}
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+    <Box component="form" onSubmit={onSubmit} sx={{ mb: 3 }}>
+      <Stack spacing={2}>
+        {error && <Alert severity="error">{error}</Alert>}
+
         <TextField
-          label="Code"
-          {...register("code")}
-          error={!!errors.code}
-          helperText={errors.code?.message}
+          label="Código"
+          required
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          inputProps={{ maxLength: 10 }}
         />
         <TextField
-          label="Name"
-          {...register("name")}
-          error={!!errors.name}
-          helperText={errors.name?.message}
+          label="Nombre"
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          inputProps={{ maxLength: 100 }}
         />
-        <TextField
-          label="Image URL"
-         
-          {...register("image", {
-            setValueAs: (v) =>
-              typeof v === "string" && v.trim() === "" ? undefined : v,
-          })}
-          error={!!errors.image}
-          helperText={errors.image?.message}
-        />
-        <Button type="submit" variant="contained" disabled={isSubmitting}>
-          Create
-        </Button>
+
+        <Box>
+          <Typography variant="body2" gutterBottom>Imagen (opcional)</Typography>
+          <input type="file" accept="image/*" aria-label="Imagen" onChange={onFile} />
+          {preview && (
+            <Box sx={{ mt: 1 }}>
+              <img
+                src={preview}
+                alt="preview"
+                style={{ width: 180, height: 120, objectFit: "cover", borderRadius: 8 }}
+              />
+            </Box>
+          )}
+        </Box>
+
+        <Box>
+          <Button disabled={loading} type="submit" variant="contained">
+            {loading ? "Creando..." : "Crear"}
+          </Button>
+        </Box>
       </Stack>
     </Box>
   );
