@@ -11,6 +11,11 @@ Thumbs.db
 **/.eslintcache
 **/.tsbuildinfo
 
+# Cachés de herramientas
+**/.vite/
+**/.turbo/
+**/.cache/
+
 # ===== Frontend =====
 frontend/node_modules/
 frontend/dist/
@@ -19,6 +24,9 @@ frontend/*.local
 frontend/.env
 frontend/.env.local
 !frontend/.env.example
+
+# También ignorar bases locales si existieran ahí
+frontend/database/*.sqlite
 
 # ===== Backend =====
 backend/vendor/
@@ -41,3 +49,9 @@ backend/.env.local
 # Subidas (imágenes) fuera del repo
 backend/storage/app/public/**
 !backend/storage/app/public/.gitkeep
+
+# SQLite local (Laravel)
+backend/database/*.sqlite
+
+# Archivos grandes y binarios no versionables
+**/*.zip
