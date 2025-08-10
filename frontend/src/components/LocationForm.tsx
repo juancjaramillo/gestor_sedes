@@ -1,19 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  Stack,
-  TextField,
-  Typography,
+  Alert, Box, Button, CircularProgress, Stack, TextField, Typography,
 } from "@mui/material";
 import { createLocationFD, updateLocationFD } from "../lib/api";
 import type { Location } from "../types/location";
 
 type Props = {
   editing?: Location | null;
-  onSuccess: () => void;
+  onSuccess?: () => void; // <- opcional, evita “onSuccess is not a function”
 };
 
 export default function LocationForm({ editing = null, onSuccess }: Props) {
@@ -38,14 +32,12 @@ export default function LocationForm({ editing = null, onSuccess }: Props) {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!code || !name) {
-      setError("Code y Name son obligatorios");
-      return;
-    }
+    if (!code || !name) { setError("Code y Name son obligatorios"); return; }
+
     setLoading(true);
     try {
       const fd = new FormData();
-      fd.append("code", code);
+      fd.append("code", code.toUpperCase());
       fd.append("name", name);
       if (file) fd.append("image", file);
 
@@ -56,37 +48,38 @@ export default function LocationForm({ editing = null, onSuccess }: Props) {
       setFile(null);
       setCode("");
       setName("");
-      onSuccess();
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Error al guardar";
-      setError(message);
+
+      onSuccess?.(); // <- llama solo si el padre la pasó
+    } catch (err: any) {
+      setError(err?.message ?? "Error al guardar");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Box component="form" onSubmit={onSubmit}>
+    <Box component="form" onSubmit={onSubmit} sx={{ mb: 2 }}>
       <Stack spacing={2}>
         {error && <Alert severity="error">{error}</Alert>}
+
         <TextField
-          label="Code"
+          label="Código "
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
-          inputProps={{ maxLength: 20 }}
+          inputProps={{ maxLength: 10 }}
           required
         />
+
         <TextField
-          label="Name"
+          label="Nombre"
           value={name}
           onChange={(e) => setName(e.target.value)}
           inputProps={{ maxLength: 100 }}
           required
         />
+
         <Box>
-          <Typography variant="body2" gutterBottom>
-            Imagen (opcional)
-          </Typography>
+          <Typography variant="body2" gutterBottom>Imagen (opcional)</Typography>
           <input
             ref={inputRef}
             type="file"
@@ -99,25 +92,15 @@ export default function LocationForm({ editing = null, onSuccess }: Props) {
               <img
                 src={previewUrl}
                 alt="preview"
-                style={{
-                  width: 180,
-                  height: 120,
-                  objectFit: "cover",
-                  borderRadius: 8,
-                }}
+                style={{ width: 180, height: 120, objectFit: "cover", borderRadius: 8 }}
               />
             </Box>
           )}
         </Box>
+
         <Box>
           <Button type="submit" variant="contained" disabled={loading}>
-            {loading ? (
-              <CircularProgress size={20} />
-            ) : editing ? (
-              "Actualizar"
-            ) : (
-              "Crear"
-            )}
+            {loading ? <CircularProgress size={20} /> : editing ? "Actualizar" : "Crear"}
           </Button>
         </Box>
       </Stack>

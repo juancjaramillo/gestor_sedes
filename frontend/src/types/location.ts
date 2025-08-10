@@ -1,13 +1,14 @@
-export interface Location {
+// C:\xampp82\htdocs\gestor_sedes\frontend\src\types\location.ts
+export type Location = {
   id: number;
   code: string;
   name: string;
-  image?: string | null;     // ruta relativa en storage (backend)
-  image_url?: string | null; // URL absoluta servida por backend
-  created_at?: string;
-}
+  image: string | null;
+  image_url?: string | null;
+  created_at?: string | null;
+};
 
-export interface Paginated<T> {
+export type Paginated<T> = {
   data: T[];
   meta: {
     current_page: number;
@@ -15,4 +16,7 @@ export interface Paginated<T> {
     total: number;
     last_page: number;
   };
-}
+};
+
+// <-- añade esto
+export type ApiError = { message: string };
