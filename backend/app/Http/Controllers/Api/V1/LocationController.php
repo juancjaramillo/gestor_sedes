@@ -67,25 +67,27 @@ class LocationController extends Controller
         return new LocationResource($location);
     }
 
-    public function store(LocationStoreRequest $request): LocationResource|JsonResponse
-    {
-        if ($resp = $this->guardApiKey($request)) {
-            return $resp;
-        }
-
-        $data = $request->validated();
-
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('locations', 'public');
-            $data['image'] = asset('storage/'.$path);
-        } else {
-            $data['image'] = $data['image'] ?? null;
-        }
-
-        $loc = $this->service->create($data);
-
-        return new LocationResource($loc);
+ public function store(LocationStoreRequest $request): LocationResource|JsonResponse
+{
+    if ($resp = $this->guardApiKey($request)) {
+        return $resp;
     }
+
+    $data = $request->validated();
+
+    if ($request->hasFile('image')) {
+        $path = $request->file('image')->store('locations', 'public');
+        $data['image'] = asset('storage/'.$path);
+    } else {
+        $data['image'] = $data['image'] ?? null;
+    }
+
+    
+    $loc = $this->service->create($data);
+
+    return new LocationResource($loc);
+}
+
 
     public function update(LocationUpdateRequest $request, Location $location): LocationResource|JsonResponse
     {
