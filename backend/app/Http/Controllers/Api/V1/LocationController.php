@@ -16,7 +16,6 @@ class LocationController extends Controller
 {
     public function __construct(private readonly LocationService $service) {}
 
-
     private function guardApiKey(Request $request): ?JsonResponse
     {
         $provided = (string) $request->header('x-api-key', '');
@@ -25,7 +24,7 @@ class LocationController extends Controller
         if ($expected === '' || ! hash_equals($expected, $provided)) {
             return response()->json([
                 'error' => [
-                    'code'    => 'E_UNAUTHORIZED',
+                    'code' => 'E_UNAUTHORIZED',
                     'message' => 'Missing or invalid API key',
                 ],
             ], 401);
@@ -52,9 +51,9 @@ class LocationController extends Controller
             'data' => LocationResource::collection($p->items()),
             'meta' => [
                 'current_page' => $p->currentPage(),
-                'last_page'    => $p->lastPage(),
-                'per_page'     => $p->perPage(),
-                'total'        => $p->total(),
+                'last_page' => $p->lastPage(),
+                'per_page' => $p->perPage(),
+                'total' => $p->total(),
             ],
         ]);
     }
@@ -78,7 +77,7 @@ class LocationController extends Controller
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('locations', 'public');
-            $data['image'] = asset('storage/' . $path);
+            $data['image'] = asset('storage/'.$path);
         } else {
             $data['image'] = $data['image'] ?? null;
         }
@@ -100,7 +99,7 @@ class LocationController extends Controller
             if ($location->image) {
                 $prefixes = [
                     '/storage/',
-                    rtrim(url('/storage'), '/') . '/', 
+                    rtrim(url('/storage'), '/').'/',
                 ];
                 foreach ($prefixes as $prefix) {
                     if (str_starts_with($location->image, $prefix)) {
@@ -112,7 +111,7 @@ class LocationController extends Controller
             }
 
             $path = $request->file('image')->store('locations', 'public');
-            $data['image'] = asset('storage/' . $path);
+            $data['image'] = asset('storage/'.$path);
         } else {
             $data['image'] = $location->image;
         }
@@ -131,7 +130,7 @@ class LocationController extends Controller
         if ($location->image) {
             $prefixes = [
                 '/storage/',
-                rtrim(url('/storage'), '/') . '/', 
+                rtrim(url('/storage'), '/').'/',
             ];
             foreach ($prefixes as $prefix) {
                 if (str_starts_with($location->image, $prefix)) {

@@ -18,8 +18,8 @@ class LocationUpdateRequest extends FormRequest
         $id = $this->route('location')?->id ?? $this->route('id');
 
         return [
-            'code'  => ['required', 'string', 'max:50', Rule::unique('locations', 'code')->ignore($id)],
-            'name'  => ['required', 'string', 'max:255'],
+            'code' => ['required', 'string', 'max:50', Rule::unique('locations', 'code')->ignore($id)],
+            'name' => ['required', 'string', 'max:255'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:2048'],
         ];
     }

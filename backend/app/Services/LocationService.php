@@ -30,8 +30,8 @@ class LocationService
     public function update(Location $loc, array $data): Location
     {
         $loc->fill([
-            'code'  => $data['code'],
-            'name'  => $data['name'],
+            'code' => $data['code'],
+            'name' => $data['name'],
             'image' => $data['image'] ?? null,
         ])->save();
 

@@ -16,7 +16,7 @@ class EnsureApiKey
         if ($expected === '' || ! hash_equals($expected, $provided)) {
             return response()->json([
                 'error' => [
-                    'code'    => 'E_UNAUTHORIZED',
+                    'code' => 'E_UNAUTHORIZED',
                     'message' => 'Missing or invalid API key',
                 ],
             ], 401);
