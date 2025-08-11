@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Location;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\Location;
 
 class LocationValidationTest extends TestCase
 {

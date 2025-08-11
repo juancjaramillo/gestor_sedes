@@ -8,15 +8,38 @@ use App\Http\Requests\LocationUpdateRequest;
 use App\Http\Resources\LocationResource;
 use App\Models\Location;
 use App\Services\LocationService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class LocationController extends Controller
 {
-    public function __construct(private LocationService $service) {}
+    public function __construct(private readonly LocationService $service) {}
 
-    public function index(Request $request)
+
+    private function guardApiKey(Request $request): ?JsonResponse
     {
+        $provided = (string) $request->header('x-api-key', '');
+        $expected = (string) config('api.key', '');
+
+        if ($expected === '' || ! hash_equals($expected, $provided)) {
+            return response()->json([
+                'error' => [
+                    'code'    => 'E_UNAUTHORIZED',
+                    'message' => 'Missing or invalid API key',
+                ],
+            ], 401);
+        }
+
+        return null;
+    }
+
+    public function index(Request $request): JsonResponse
+    {
+        if ($resp = $this->guardApiKey($request)) {
+            return $resp;
+        }
+
         $filters = [
             'name' => $request->string('name')->toString(),
             'code' => $request->string('code')->toString(),
@@ -36,14 +59,26 @@ class LocationController extends Controller
         ]);
     }
 
-    public function store(LocationStoreRequest $request)
+    public function show(Request $request, Location $location): JsonResponse|LocationResource
     {
+        if ($resp = $this->guardApiKey($request)) {
+            return $resp;
+        }
+
+        return new LocationResource($location);
+    }
+
+    public function store(LocationStoreRequest $request): LocationResource|JsonResponse
+    {
+        if ($resp = $this->guardApiKey($request)) {
+            return $resp;
+        }
+
         $data = $request->validated();
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('locations', 'public');
-         
-            $data['image'] = Storage::url($path);
+            $data['image'] = asset('storage/' . $path);
         } else {
             $data['image'] = $data['image'] ?? null;
         }
@@ -53,15 +88,19 @@ class LocationController extends Controller
         return new LocationResource($loc);
     }
 
-    public function update(LocationUpdateRequest $request, Location $location)
+    public function update(LocationUpdateRequest $request, Location $location): LocationResource|JsonResponse
     {
+        if ($resp = $this->guardApiKey($request)) {
+            return $resp;
+        }
+
         $data = $request->validated();
 
         if ($request->hasFile('image')) {
-             if ($location->image) {
+            if ($location->image) {
                 $prefixes = [
                     '/storage/',
-                    rtrim(url('/storage'), '/') . '/',
+                    rtrim(url('/storage'), '/') . '/', 
                 ];
                 foreach ($prefixes as $prefix) {
                     if (str_starts_with($location->image, $prefix)) {
@@ -73,7 +112,7 @@ class LocationController extends Controller
             }
 
             $path = $request->file('image')->store('locations', 'public');
-            $data['image'] = Storage::url($path);
+            $data['image'] = asset('storage/' . $path);
         } else {
             $data['image'] = $location->image;
         }
@@ -81,5 +120,30 @@ class LocationController extends Controller
         $location = $this->service->update($location, $data);
 
         return new LocationResource($location);
+    }
+
+    public function destroy(Request $request, Location $location): JsonResponse
+    {
+        if ($resp = $this->guardApiKey($request)) {
+            return $resp;
+        }
+
+        if ($location->image) {
+            $prefixes = [
+                '/storage/',
+                rtrim(url('/storage'), '/') . '/', 
+            ];
+            foreach ($prefixes as $prefix) {
+                if (str_starts_with($location->image, $prefix)) {
+                    $relative = ltrim(str_replace($prefix, '', $location->image), '/');
+                    Storage::disk('public')->delete($relative);
+                    break;
+                }
+            }
+        }
+
+        $location->delete();
+
+        return response()->json([], 204);
     }
 }

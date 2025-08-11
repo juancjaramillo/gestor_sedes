@@ -1,4 +1,3 @@
-// frontend/eslint.config.mjs
 import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
@@ -21,7 +20,7 @@ export default [
   js.configs.recommended,
   ...tseslint.configs.recommended,
 
-  // Reglas generales del proyecto
+
   {
     files: ["**/*.{js,ts,tsx}"],
     languageOptions: {
@@ -33,11 +32,11 @@ export default [
       },
     },
     rules: {
-      // Tus reglas opcionales aquí
+     
     },
   },
 
-  // Tests: habilitar globals de Jest solo dentro de tests
+
   {
     files: ["src/__tests__/**/*.{ts,tsx}", "src/test/**/*.{ts,tsx}"],
     languageOptions: {
@@ -50,7 +49,7 @@ export default [
     rules: {},
   },
 
-  // Configs en CJS
+
   {
     files: ["jest.config.cjs"],
     languageOptions: {

@@ -1,22 +1,33 @@
-name: CI Frontend
+name: Frontend CI
 
 on:
   push:
+    branches: [main, develop]
     paths:
       - "frontend/**"
       - ".github/workflows/frontend.yml"
   pull_request:
+    branches: [main, develop]
     paths:
       - "frontend/**"
       - ".github/workflows/frontend.yml"
-  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-and-test:
+  frontend:
+    name: React/Vite • Lint + Tests + Build
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: frontend
+
+    env:
+      # Úsalos en pruebas si tu código los lee (axios base y API key)
+      VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api' }}
+      VITE_API_KEY: ${{ secrets.VITE_API_KEY || 'sk_testing_dummy_0000000000000000000000000000000000000000000000000000000000000000' }}
 
     steps:
       - name: Checkout
@@ -29,14 +40,20 @@ jobs:
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install dependencies
+      - name: Install deps
         run: npm ci
 
-      - name: Lint
+      - name: Lint (ESLint)
         run: npm run lint
 
-      - name: Test
+      - name: Tests (Jest)
         run: npm test -- --watch=false
 
       - name: Build
         run: npm run build
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist

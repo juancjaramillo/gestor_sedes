@@ -14,20 +14,20 @@ class LocationRepositoryTest extends TestCase
 
     public function test_caches_index_results(): void
     {
-        // Arrange
+    
         Location::create(['code' => 'BOG', 'name' => 'Bogotá']);
 
-        // Espiar Cache facade
+    
         Cache::spy();
 
-        // Simula query param page para la clave de cache
+        
         $this->app['request']->merge(['page' => 1]);
 
-        // Act
+       
         $repo = app(LocationRepository::class);
         $repo->paginateFiltered(['name' => 'BO'], 10);
 
-        // Assert: remember fue llamado
+    
         Cache::shouldHaveReceived('remember')->atLeast()->once();
     }
 }

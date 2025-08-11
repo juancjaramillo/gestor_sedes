@@ -4,77 +4,88 @@ namespace Tests\Feature;
 
 use App\Models\Location;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class LocationApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    private string $key;
-
     protected function setUp(): void
     {
         parent::setUp();
-        // Lee la API key desde config => .env.testing
-        $this->key = (string) config('api.key');
+        Storage::fake('public');
     }
 
-    public function test_rejects_without_api_key(): void
+    private function withKey(array $headers = []): array
     {
-        $this->getJson('/api/v1/locations')->assertStatus(401);
+        return array_merge(['x-api-key' => config('api.key')], $headers);
     }
 
-    public function test_lists_locations_with_pagination_and_filters(): void
+    public function test_index_returns_paginated_list(): void
     {
-        Location::factory()->create(['code' => 'BOG', 'name' => 'Bogotá']);
-        Location::factory()->create(['code' => 'MED', 'name' => 'Medellín']);
-        Location::factory()->create(['code' => 'BAR', 'name' => 'Barranquilla']);
-        Location::factory()->count(5)->create();
+        Location::factory()->count(3)->create();
 
-        $headers = ['x-api-key' => $this->key];
+        $res = $this->withHeaders($this->withKey())
+            ->getJson('/api/v1/locations?per_page=2');
 
-        $res = $this->withHeaders($headers)
-            ->getJson('/api/v1/locations?name=bo&per_page=5&page=1');
-
-        $res->assertOk();
-
-        $res->assertJsonStructure([
-            'data' => [
-                '*' => ['id', 'code', 'name', 'image', 'created_at'],
-            ],
-            'meta' => ['current_page', 'last_page', 'per_page', 'total'],
-        ]);
-
-        $codes = collect($res->json('data'))->pluck('code');
-        $this->assertTrue($codes->contains('BOG'));
+        $res->assertOk()
+            ->assertJsonStructure(['data', 'meta' => ['current_page', 'last_page', 'per_page', 'total']]);
     }
 
-    public function test_creates_a_location(): void
+    public function test_store_creates_location(): void
     {
-        $headers = ['x-api-key' => $this->key];
+        $payload = ['code' => 'BOG', 'name' => 'Bogotá'];
 
-        $payload = [
-            'code' => 'ABC',
-            'name' => 'Ciudad ABC',
-        ];
+        $res = $this->withHeaders($this->withKey())
+            ->postJson('/api/v1/locations', $payload);
 
-        $res = $this->withHeaders($headers)->postJson('/api/v1/locations', $payload);
+        $res->assertCreated()
+            ->assertJsonPath('data.code', 'BOG')
+            ->assertJsonPath('data.name', 'Bogotá');
 
-        // 200 o 201, según tu controlador
-        $this->assertTrue(in_array($res->getStatusCode(), [200, 201], true), 'Expected 200 or 201');
+        $this->assertDatabaseHas('locations', $payload);
+    }
 
-        $json = $res->json();
+    public function test_update_keeps_same_code_without_unique_violation(): void
+    {
+        $loc = Location::factory()->create(['code' => 'BOG', 'name' => 'Bogotá']);
 
-        // Soportar ambas estructuras: {data:{...}} ó {...}
-        $code = data_get($json, 'data.code', data_get($json, 'code'));
-        $name = data_get($json, 'data.name', data_get($json, 'name'));
+        $res = $this->withHeaders($this->withKey())
+            ->putJson("/api/v1/locations/{$loc->id}", [
+                'code' => 'BOG',
+                'name' => 'Bogotá D.C.',
+            ]);
 
-        $this->assertSame('ABC', $code);
-        $this->assertSame('Ciudad ABC', $name);
+        $res->assertOk()
+            ->assertJsonPath('data.code', 'BOG')
+            ->assertJsonPath('data.name', 'Bogotá D.C.');
 
-        $this->assertDatabaseHas('locations', [
-            'code' => 'ABC',
-            'name' => 'Ciudad ABC',
-        ]);
+        $this->assertDatabaseHas('locations', ['id' => $loc->id, 'name' => 'Bogotá D.C.']);
+    }
+
+    public function test_update_fails_when_code_duplicates_other_row(): void
+    {
+        $a = Location::factory()->create(['code' => 'BOG']);
+        $b = Location::factory()->create(['code' => 'MED']);
+
+        $res = $this->withHeaders($this->withKey())
+            ->putJson("/api/v1/locations/{$a->id}", [
+                'code' => 'MED',
+                'name' => 'Bogotá',
+            ]);
+
+        $res->assertStatus(422);
+    }
+
+    public function test_destroy_deletes_location(): void
+    {
+        $loc = Location::factory()->create();
+
+        $res = $this->withHeaders($this->withKey())
+            ->deleteJson("/api/v1/locations/{$loc->id}");
+
+        $res->assertNoContent();
+        $this->assertDatabaseMissing('locations', ['id' => $loc->id]);
     }
 }

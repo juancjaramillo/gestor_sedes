@@ -12,7 +12,7 @@ class LocationSeeder extends Seeder
 {
     public function run(): void
     {
-      
+
         if (! File::exists(public_path('storage'))) {
             Artisan::call('storage:link');
         }
@@ -35,12 +35,11 @@ class LocationSeeder extends Seeder
         foreach ($rows as $row) {
             $imageUrl = null;
 
-            $src = $srcDir . DIRECTORY_SEPARATOR . $row['file'];
+            $src = $srcDir.DIRECTORY_SEPARATOR.$row['file'];
             if (File::exists($src)) {
-                $target = 'locations/' . $row['file'];
+                $target = 'locations/'.$row['file'];
                 Storage::disk('public')->put($target, File::get($src));
 
-            
                 $imageUrl = Storage::url($target);
             }
 

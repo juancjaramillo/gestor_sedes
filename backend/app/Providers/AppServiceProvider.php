@@ -9,15 +9,19 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+        //
+    }
 
     public function boot(): void
     {
-        RateLimiter::for('api-key', function (Request $request) {
-            $limit = (int) config('api.rate_limit', 60);
-            $by = $request->header('x-api-key') ?: $request->ip();
 
-            return Limit::perMinute($limit)->by((string) $by);
+        RateLimiter::for('api', function (Request $request) {
+            $perMinute = (int) config('api.rate_limit', 60);
+            $key = $request->header('x-api-key') ?: $request->ip();
+
+            return [Limit::perMinute($perMinute)->by($key)];
         });
     }
 }

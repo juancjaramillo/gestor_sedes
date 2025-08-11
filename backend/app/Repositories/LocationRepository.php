@@ -8,36 +8,45 @@ use Illuminate\Support\Facades\Cache;
 
 class LocationRepository
 {
+    /**
+     * @param array{name?: string|null, code?: string|null} $filters
+     * @return LengthAwarePaginator<int, Location>
+     */
     public function paginateFiltered(array $filters, int $perPage = 10): LengthAwarePaginator
     {
-        $name = trim((string) ($filters['name'] ?? ''));
-        $code = trim((string) ($filters['code'] ?? ''));
-        $page = (int) request('page', 1);
+        $page = (int) request()->integer('page', 1);
+        $ttl  = (int) config('api.cache_ttl', 60);
 
-        $ttl = (int) config('api.cache_ttl', 30);
+        $key = 'locations:index:' . md5(json_encode([$filters, $perPage, $page], JSON_THROW_ON_ERROR));
 
-        $q = Location::query();
-        if ($name !== '') $q->where('name', 'like', "%{$name}%");
-        if ($code !== '') $q->where('code', 'like', "%{$code}%");
-        $q->orderBy('name');
+         $build = function () use ($filters, $perPage): LengthAwarePaginator {
+            $q = Location::query();
 
-        if ($ttl <= 0) {
-            return $q->paginate($perPage);
-        }
+            if (!empty($filters['name'])) {
+                $q->where('name', 'like', '%' . $filters['name'] . '%');
+            }
+            if (!empty($filters['code'])) {
+                $q->where('code', 'like', '%' . $filters['code'] . '%');
+            }
 
-        $cacheKey = sprintf('locations:%s:%s:%d:%d', $name, $code, $page, $perPage);
+            /** @var LengthAwarePaginator<int, Location> $p */
+            $p = $q->orderByDesc('id')->paginate($perPage);
 
-        return Cache::remember($cacheKey, $ttl, function () use ($q, $perPage) {
-            return $q->paginate($perPage);
-        });
+            return $p;
+        };
+
+        /** @var LengthAwarePaginator<int, Location>|null $result */
+        $result = Cache::remember($key, now()->addSeconds($ttl), $build);
+
+        
+        return $result ?? $build();
     }
 
+    /**
+     * @param array{code: string, name: string, image?: string|null} $data
+     */
     public function create(array $data): Location
     {
-        return Location::create([
-            'code'  => $data['code'],
-            'name'  => $data['name'],
-            'image' => $data['image'] ?? null,
-        ]);
+        return Location::create($data);
     }
 }

@@ -11,18 +11,22 @@ class LocationService
 {
     public function __construct(private LocationRepository $repo) {}
 
+    /** @param array{name?:string|null, code?:string|null} $filters */
     public function list(array $filters, int $perPage = 10): LengthAwarePaginator
     {
         return $this->repo->paginateFiltered($filters, $perPage);
     }
 
+    /** @param array{code:string, name:string, image?:string|null} $data */
     public function create(array $data): Location
     {
         $loc = $this->repo->create($data);
-        Cache::flush(); 
+        Cache::flush();
+
         return $loc;
     }
 
+    /** @param array{code:string, name:string, image?:string|null} $data */
     public function update(Location $loc, array $data): Location
     {
         $loc->fill([
@@ -31,7 +35,8 @@ class LocationService
             'image' => $data['image'] ?? null,
         ])->save();
 
-        Cache::flush(); 
+        Cache::flush();
+
         return $loc;
     }
 }

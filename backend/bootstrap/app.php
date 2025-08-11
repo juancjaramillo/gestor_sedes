@@ -1,89 +1,52 @@
 <?php
 
-use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Middleware\HandleCors;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__ . '/../routes/web.php',
-        api: __DIR__ . '/../routes/api.php',
-        commands: __DIR__ . '/../routes/console.php',
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Alias para usarlo por ruta (NO global)
+       
         $middleware->alias([
-            'apikey' => \App\Http\Middleware\ApiKeyMiddleware::class,
+            'key' => \App\Http\Middleware\EnsureApiKey::class,
         ]);
 
-        // CORS en el grupo api
-        $middleware->api(prepend: [HandleCors::class]);
-        // Importante: NO uses ->append(ApiKeyMiddleware::class) aquí.
+      
+        $middleware->api(prepend: [
+            'throttle:api',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        $exceptions->shouldRenderJsonWhen(function (Request $request, \Throwable $e) {
-            return $request->is('api/*') || $request->expectsJson();
-        });
-
-        $exceptions->render(function (ValidationException $e, Request $request) {
-            return response()->json([
-                'error' => [
-                    'message' => 'Invalid parameters',
-                    'code'    => 'E_INVALID_PARAM',
-                    'details' => $e->errors(),
-                ],
-            ], 422);
-        });
-
-        $exceptions->render(function (AuthenticationException $e, Request $request) {
-            return response()->json([
-                'error' => [
-                    'message' => 'Unauthorized',
-                    'code'    => 'E_UNAUTHORIZED',
-                ],
-            ], 401);
-        });
-
-        $exceptions->render(function (AuthorizationException $e, Request $request) {
-            return response()->json([
-                'error' => [
-                    'message' => 'Forbidden',
-                    'code'    => 'E_FORBIDDEN',
-                ],
-            ], 403);
-        });
-
-        $exceptions->render(function (HttpExceptionInterface $e, Request $request) {
-            $status = $e->getStatusCode();
-            $code = match ($status) {
-                401 => 'E_UNAUTHORIZED',
-                403 => 'E_FORBIDDEN',
-                404 => 'E_NOT_FOUND',
-                default => 'E_HTTP_ERROR',
-            };
-
-            return response()->json([
-                'error' => [
-                    'message' => $e->getMessage() ?: 'HTTP Error',
-                    'code'    => $code,
-                ],
-            ], $status);
-        });
-
-        $exceptions->render(function (\Throwable $e, Request $request) {
-            return response()->json([
-                'error' => [
-                    'message' => 'Server Error',
-                    'code'    => 'E_SERVER_ERROR',
-                ],
-            ], 500);
+   
+        $exceptions->renderable(function (ValidationException $e, Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'error' => [
+                        'code'    => 'E_INVALID_PARAM',
+                        'message' => 'Validation failed',
+                        'details' => $e->errors(),
+                    ],
+                ], 422);
+            }
         });
     })
+    ->withSchedule(function () {})
     ->create();
+
+
+RateLimiter::for('api', function (Request $request) {
+    $by   = $request->header('x-api-key') ?: $request->ip();
+    $max  = (int) config('api.rate_limit', 60);
+
+    return [ Limit::perMinute($max)->by($by) ];
+});
