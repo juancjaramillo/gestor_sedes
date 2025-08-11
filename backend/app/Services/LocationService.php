@@ -3,53 +3,50 @@
 namespace App\Services;
 
 use App\Models\Location;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Repositories\LocationRepository;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 
 class LocationService
 {
+    public function __construct(
+        private readonly LocationRepository $repo,
+    ) {}
+
     /**
-     * Método para obtener una lista paginada de ubicaciones.
-     *
-     * @param array $filters Filtros para la búsqueda
-     * @param int $perPage Número de resultados por página
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     * @param  array{name?: string|null, code?: string|null}  $filters
      */
-    public function list(array $filters, int $perPage = 10)
+    public function list(array $filters, int $perPage = 10): LengthAwarePaginator
     {
-        $query = Location::query();
-
-        if (!empty($filters['name'])) {
-            $query->where('name', 'like', '%' . $filters['name'] . '%');
-        }
-
-        if (!empty($filters['code'])) {
-            $query->where('code', 'like', '%' . $filters['code'] . '%');
-        }
-
-        return $query->paginate($perPage);
+        return $this->repo->paginateFiltered($filters, $perPage);
     }
 
     /**
-     * Método para crear una nueva ubicación.
-     *
-     * @param array $data Datos validados para crear una nueva ubicación
-     * @return Location
+     * @param  array{code: string, name: string, image?: string|null}  $data
      */
     public function create(array $data): Location
     {
-        return Location::create($data);
+        $loc = $this->repo->create($data);
+        Cache::flush();
+
+        return $loc;
     }
 
     /**
-     * Método para actualizar una ubicación existente.
-     *
-     * @param Location $location Ubicación a actualizar
-     * @param array $data Datos validados para la actualización
-     * @return Location
+     * @param  array{code: string, name: string, image?: string|null}  $data
      */
-    public function update(Location $location, array $data): Location
+    public function update(Location $loc, array $data): Location
     {
-        $location->update($data);
-        return $location;
+        $loc->fill([
+            'code' => $data['code'],
+            'name' => $data['name'],
+            'image' => $data['image'] ?? null,
+        ]);
+
+        $loc->save();
+
+        Cache::flush();
+
+        return $loc;
     }
 }

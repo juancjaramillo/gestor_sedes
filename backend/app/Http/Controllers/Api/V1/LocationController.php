@@ -14,7 +14,9 @@ use Illuminate\Support\Facades\Storage;
 
 class LocationController extends Controller
 {
-    public function __construct(private readonly LocationService $service) {}
+    public function __construct(
+        private readonly LocationService $service,
+    ) {}
 
     private function guardApiKey(Request $request): ?JsonResponse
     {
@@ -67,27 +69,25 @@ class LocationController extends Controller
         return new LocationResource($location);
     }
 
- public function store(LocationStoreRequest $request): LocationResource|JsonResponse
-{
-    if ($resp = $this->guardApiKey($request)) {
-        return $resp;
+    public function store(LocationStoreRequest $request): LocationResource|JsonResponse
+    {
+        if ($resp = $this->guardApiKey($request)) {
+            return $resp;
+        }
+
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('locations', 'public');
+            $data['image'] = asset('storage/'.$path);
+        } else {
+            $data['image'] = $data['image'] ?? null;
+        }
+
+        $loc = $this->service->create($data);
+
+        return new LocationResource($loc);
     }
-
-    $data = $request->validated();
-
-    if ($request->hasFile('image')) {
-        $path = $request->file('image')->store('locations', 'public');
-        $data['image'] = asset('storage/'.$path);
-    } else {
-        $data['image'] = $data['image'] ?? null;
-    }
-
-    
-    $loc = $this->service->create($data);
-
-    return new LocationResource($loc);
-}
-
 
     public function update(LocationUpdateRequest $request, Location $location): LocationResource|JsonResponse
     {
@@ -103,6 +103,7 @@ class LocationController extends Controller
                     '/storage/',
                     rtrim(url('/storage'), '/').'/',
                 ];
+
                 foreach ($prefixes as $prefix) {
                     if (str_starts_with($location->image, $prefix)) {
                         $relative = ltrim(str_replace($prefix, '', $location->image), '/');
@@ -134,6 +135,7 @@ class LocationController extends Controller
                 '/storage/',
                 rtrim(url('/storage'), '/').'/',
             ];
+
             foreach ($prefixes as $prefix) {
                 if (str_starts_with($location->image, $prefix)) {
                     $relative = ltrim(str_replace($prefix, '', $location->image), '/');
