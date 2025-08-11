@@ -24,7 +24,7 @@ Aplicación **full‑stack** para gestionar sedes (**Laravel 12 + PHP 8.2/8.3** 
 
 ---
 
-## Estructura del repo
+## Estructura del repositorio
 
 ```
 backend/     # Laravel API
@@ -76,7 +76,7 @@ php artisan serve
 # => http://127.0.0.1:8000
 ```
 
-> Si usas MySQL/PostgreSQL, cambia `DB_CONNECTION`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` en `.env` y omite la parte de SQLite.
+> Si usan MySQL/PostgreSQL, cambia `DB_CONNECTION`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` en `.env` y omita la parte de SQLite.
 
 #### Tests del backend
 
@@ -302,7 +302,7 @@ php artisan route:clear
 
 **Backend**
 
-* `php artisan migrate:fresh --seed` – recrea tablas y re‑siembra
+* `php artisan migrate:fresh --seed` – recrea tablas y reinstala el seed
 * `php artisan storage:link` – enlaza almacenamiento público
 
 **Frontend**
@@ -314,14 +314,7 @@ php artisan route:clear
 
 ---
 
-## Solución de problemas
 
-* **Badges “no status”**: confirma que existen `backend.yml` y `frontend.yml` en `main` y que el nombre coincide con el badge. Haz un push para disparar los workflows.
-* **Clave de app en tests**: si ves `Unsupported cipher or incorrect key length`, corre `php artisan key:generate --env=testing` o deja ese paso en el workflow.
-* **`EBADENGINE Node 20.x`**: instala Node **20.x** o usa `nvm`/`nvm-windows`.
-* **CORS/URL API desde el frontend**: ajusta `VITE_API_BASE_URL`.
-
----
 
 ## Licencia
 
